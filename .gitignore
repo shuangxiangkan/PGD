@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+data/
+runs/
+checkpoints/
+*.pt
+*.pth
+*.pdf
+TDSC___GAT_PFD.md
+Probabilistic Fault Diagnosis of Clustered Faults for Multiprocessor Systems.md

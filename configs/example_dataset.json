@@ -1,0 +1,11 @@
+{
+  "topology": "hypercube",
+  "n": 4,
+  "fault_rate": 0.1,
+  "rounds": 3,
+  "gamma": 0.9,
+  "beta": 0.1,
+  "num_samples": 20,
+  "seed": 1,
+  "output": "data/q4_fr10_t3"
+}
