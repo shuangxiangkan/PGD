@@ -1,38 +1,36 @@
 device: cuda
-samples: train=100 test=100
+samples: train=10 test=5
 batch_size: 16 amp: True
-epoch 0001 loss=0.6666
-epoch 0020 loss=0.0148
-epoch 0040 loss=0.0103
-epoch 0060 loss=0.0091
+epoch 0001 loss=0.7253
+epoch 0020 loss=0.4169
 test metrics:
-raw_accuracy: 0.9986
-raw_precision: 0.9995
-raw_recall: 0.9958
-raw_f1: 0.9976
-raw_brier: 0.0016
-raw_ece: 0.0034
-raw_topk: 0.9989
-refined_accuracy: 0.9984
-refined_precision: 0.9975
-refined_recall: 0.9974
-refined_f1: 0.9974
-refined_brier: 0.0016
-refined_ece: 0.0028
-refined_topk: 0.9989
-refined_ambiguous_ratio: 0.0017
-refined_refinement_candidate_ratio: 0.1111
-delta_accuracy: -0.0002
-delta_precision: -0.0020
-delta_recall: 0.0016
-delta_f1: -0.0002
-delta_brier: -0.0001
-delta_ece: -0.0006
-delta_topk: 0.0000
-candidate_accuracy: 0.9857
-candidate_precision: 0.9817
-candidate_recall: 0.9817
-candidate_f1: 0.9790
-refinement_change_rate: 0.0093
-refinement_corrected_rate: 0.0300
-refinement_wrong_flip_rate: 0.0400
+raw_accuracy: 0.9250
+raw_precision: 0.9810
+raw_recall: 0.7684
+raw_f1: 0.8468
+raw_brier: 0.1026
+raw_ece: 0.2591
+raw_topk: 0.9789
+refined_accuracy: 0.9906
+refined_precision: 0.9810
+refined_recall: 0.9895
+refined_f1: 0.9846
+refined_brier: 0.0323
+refined_ece: 0.1267
+refined_topk: 0.9895
+refined_ambiguous_ratio: 0.3375
+refined_refinement_candidate_ratio: 0.4125
+delta_accuracy: 0.0656
+delta_precision: 0.0000
+delta_recall: 0.2211
+delta_f1: 0.1378
+delta_brier: -0.0703
+delta_ece: -0.1324
+delta_topk: 0.0105
+candidate_accuracy: 0.9775
+candidate_precision: 0.9810
+candidate_recall: 0.9895
+candidate_f1: 0.9846
+refinement_change_rate: 0.1689
+refinement_corrected_rate: 0.8000
+refinement_wrong_flip_rate: 0.0000

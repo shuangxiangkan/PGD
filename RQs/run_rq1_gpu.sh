@@ -13,11 +13,12 @@ cd "$(dirname "$0")/.."
   --gamma-max 1.0 \
   --beta-min 0.0 \
   --beta-max 0.3 \
-  --train-samples 200 \
-  --test-samples 100 \
-  --epochs 100 \
+  --train-samples 10 \
+  --test-samples 5 \
+  --epochs 20 \
   --hidden-dim 64 \
   --layers 2 \
   --backbone graphsage \
   --batch-size 16 \
-  --amp
+  --amp \
+  --force

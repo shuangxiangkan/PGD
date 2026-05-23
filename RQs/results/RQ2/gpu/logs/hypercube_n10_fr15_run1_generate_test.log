@@ -1,4 +1,4 @@
-saved 100 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ2/gpu/data/hypercube_n10_fr15_run1_test
+saved 5 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ2/gpu/data/hypercube_n10_fr15_run1_test
 topology=Q_10, nodes=1024, edges=5120
-gamma: min=0.7010, max=0.9966
-beta: min=0.0024, max=0.2977
+gamma: min=0.7285, max=0.9652
+beta: min=0.0816, max=0.2758

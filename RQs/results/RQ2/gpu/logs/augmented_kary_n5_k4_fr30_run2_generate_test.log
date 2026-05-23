@@ -1,4 +1,4 @@
-saved 100 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ2/gpu/data/augmented_kary_n5_k4_fr30_run2_test
+saved 5 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ2/gpu/data/augmented_kary_n5_k4_fr30_run2_test
 topology=AQ_5,4, nodes=1024, edges=9216
-gamma: min=0.7043, max=0.9996
-beta: min=0.0058, max=0.2978
+gamma: min=0.7457, max=0.9442
+beta: min=0.0154, max=0.2978

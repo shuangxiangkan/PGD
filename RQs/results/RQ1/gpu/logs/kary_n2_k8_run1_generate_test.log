@@ -1,4 +1,4 @@
-saved 100 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ1/gpu/data/kary_n2_k8_run1_test
+saved 5 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ1/gpu/data/kary_n2_k8_run1_test
 topology=K_2,8, nodes=64, edges=128
-gamma: min=0.7002, max=0.9992
-beta: min=0.0051, max=0.2968
+gamma: min=0.7103, max=0.9464
+beta: min=0.0415, max=0.1532
