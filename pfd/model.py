@@ -147,7 +147,8 @@ class GCNLayer(nn.Module):
         deg.index_add_(0, dst_all, torch.ones_like(dst_all, dtype=h.dtype))
         norm = deg[src_all].clamp_min(1.0).rsqrt() * deg[dst_all].clamp_min(1.0).rsqrt()
         agg = torch.zeros_like(h)
-        agg.index_add_(0, dst_all, h[src_all] * norm.unsqueeze(-1))
+        weighted = h[src_all] * norm.to(dtype=h.dtype).unsqueeze(-1)
+        agg.index_add_(0, dst_all, weighted)
         out = torch.relu(self.linear(agg) + h)
         return self.dropout(out)
 
@@ -188,7 +189,7 @@ class GATLayer(nn.Module):
         alpha = torch.zeros_like(logits)
         for u in torch.unique(dst):
             mask = dst == u
-            alpha[mask] = torch.softmax(logits[mask], dim=0)
+            alpha[mask] = torch.softmax(logits[mask], dim=0).to(dtype=alpha.dtype)
         agg = torch.zeros_like(z)
         agg.index_add_(0, dst, z[src] * alpha.unsqueeze(-1))
         out = torch.relu(agg + h)

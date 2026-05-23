@@ -18,4 +18,6 @@ cd "$(dirname "$0")/.."
   --epochs 100 \
   --hidden-dim 64 \
   --layers 2 \
-  --backbone graphsage
+  --backbone graphsage \
+  --batch-size 16 \
+  --amp

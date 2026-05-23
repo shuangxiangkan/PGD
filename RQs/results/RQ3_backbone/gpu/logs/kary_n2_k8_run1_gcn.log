@@ -1,0 +1,38 @@
+device: cuda
+samples: train=100 test=100
+batch_size: 16 amp: True
+epoch 0001 loss=0.6441
+epoch 0020 loss=0.0770
+epoch 0040 loss=0.0277
+epoch 0060 loss=0.0184
+test metrics:
+raw_accuracy: 0.9917
+raw_precision: 0.9855
+raw_recall: 0.9874
+raw_f1: 0.9860
+raw_brier: 0.0059
+raw_ece: 0.0118
+raw_topk: 0.9916
+refined_accuracy: 0.9961
+refined_precision: 0.9906
+refined_recall: 0.9968
+refined_f1: 0.9935
+refined_brier: 0.0030
+refined_ece: 0.0055
+refined_topk: 0.9974
+refined_ambiguous_ratio: 0.0028
+refined_refinement_candidate_ratio: 0.1125
+delta_accuracy: 0.0044
+delta_precision: 0.0052
+delta_recall: 0.0095
+delta_f1: 0.0075
+delta_brier: -0.0029
+delta_ece: -0.0063
+delta_topk: 0.0058
+candidate_accuracy: 0.9693
+candidate_precision: 0.9308
+candidate_recall: 0.9805
+candidate_f1: 0.9427
+refinement_change_rate: 0.0424
+refinement_corrected_rate: 0.2400
+refinement_wrong_flip_rate: 0.0100

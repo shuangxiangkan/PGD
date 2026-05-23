@@ -21,6 +21,8 @@ GPU:
 bash RQs/run_rq3_refinement_gpu.sh
 ```
 
+The current GPU launcher uses the reduced-data accelerated setting: `100` training samples, `100` test samples, `60` epochs, evaluation every `5` epochs, mini-batch size `16`, and CUDA mixed precision.
+
 Outputs are written under `RQs/results/RQ3_refinement/<profile>/`.
 
 ## Backbone Comparison
@@ -43,6 +45,8 @@ GPU:
 bash RQs/run_rq3_backbone_gpu.sh
 ```
 
+The current GPU launcher uses the reduced-data accelerated setting: `100` training samples, `100` test samples, `60` epochs, evaluation every `5` epochs, mini-batch size `16`, and CUDA mixed precision.
+
 Outputs are written under `RQs/results/RQ3_backbone/<profile>/`.
 
 ## Topologies
@@ -55,9 +59,9 @@ CPU profile:
 
 GPU profile:
 
-- Q10
-- Q4^5
-- AQ(5,4)
+- Q6
+- Q8^2
+- AQ(2,8)
 
 ## Metrics
 

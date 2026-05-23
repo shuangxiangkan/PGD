@@ -45,12 +45,12 @@ GPU_CASES = [
     TopologyCase("hypercube", "Q6", "hypercube", 6),
     TopologyCase("hypercube", "Q8", "hypercube", 8),
     TopologyCase("hypercube", "Q10", "hypercube", 10),
-    TopologyCase("kary", "K(3,4)", "kary", 3, 4),
-    TopologyCase("kary", "K(4,4)", "kary", 4, 4),
-    TopologyCase("kary", "K(5,4)", "kary", 5, 4),
-    TopologyCase("augmented_kary", "AQ(3,4)", "augmented_kary", 3, 4),
-    TopologyCase("augmented_kary", "AQ(4,4)", "augmented_kary", 4, 4),
-    TopologyCase("augmented_kary", "AQ(5,4)", "augmented_kary", 5, 4),
+    TopologyCase("kary", "K(8,2)", "kary", 2, 8),
+    TopologyCase("kary", "K(6,3)", "kary", 3, 6),
+    TopologyCase("kary", "K(5,4)", "kary", 4, 5),
+    TopologyCase("augmented_kary", "AQ(8,2)", "augmented_kary", 2, 8),
+    TopologyCase("augmented_kary", "AQ(6,3)", "augmented_kary", 3, 6),
+    TopologyCase("augmented_kary", "AQ(5,4)", "augmented_kary", 4, 5),
 ]
 
 
@@ -123,7 +123,7 @@ def dataset_command(case: TopologyCase, output: Path, seed: int, samples: int, a
 
 
 def method_command(train_data: Path, test_data: Path, seed: int, args) -> list[str]:
-    return [
+    cmd = [
         str(PYTHON),
         "scripts/run_method.py",
         "--dataset",
@@ -147,6 +147,11 @@ def method_command(train_data: Path, test_data: Path, seed: int, args) -> list[s
         "--log-every",
         str(args.log_every),
     ]
+    if args.batch_size > 1:
+        cmd.extend(["--batch-size", str(args.batch_size)])
+    if args.amp:
+        cmd.append("--amp")
+    return cmd
 
 
 def baseline_command(test_data: Path) -> list[str]:
@@ -212,6 +217,8 @@ def main() -> None:
     parser.add_argument("--backbone", choices=["gcn", "graphsage", "gat"], default="graphsage")
     parser.add_argument("--refine-top-pct", type=float, default=0.1)
     parser.add_argument("--log-every", type=int, default=20)
+    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--amp", action="store_true")
     parser.add_argument("--seed-base", type=int, default=3100)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "RQs" / "results" / "RQ1")
     parser.add_argument("--force", action="store_true", help="Regenerate datasets even if they exist.")

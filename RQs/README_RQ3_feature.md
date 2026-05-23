@@ -25,11 +25,11 @@ bash RQs/run_rq3_feature_cpu.sh
 
 ## GPU Version
 
-The GPU profile uses larger counterparts:
+The GPU profile uses the smallest instances from the RQ1 GPU-scale topology set:
 
-- Hypercube: Q10
-- k-ary n-cube: Q4^5
-- Augmented k-ary n-cube: AQ(5,4)
+- Hypercube: Q6
+- k-ary n-cube: Q8^2
+- Augmented k-ary n-cube: AQ(2,8)
 
 Run:
 

@@ -1,0 +1,7 @@
+profile,fault_rate,topology,method,runs,accuracy_mean,accuracy_std,precision_mean,precision_std,recall_mean,recall_std,f1_mean,f1_std,brier_mean,brier_std,ece_mean,ece_std
+gpu,0.1,"AQ(5,4)",Clustered-PMC,1,0.9153,0.0,0.9,0.0,0.15,0.0,0.23,0.0,0.0847,0.0,0.0,0.0
+gpu,0.1,"AQ(5,4)",UP-GDN,1,0.9004,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.1878,0.0,0.3242,0.0
+gpu,0.1,Q10,Clustered-PMC,1,0.9113,0.0,1.0,0.0,0.1098,0.0,0.1904,0.0,0.0887,0.0,0.0,0.0
+gpu,0.1,Q10,UP-GDN,1,0.9004,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.244,0.0,0.3926,0.0
+gpu,0.1,Q4^5,Clustered-PMC,1,0.932,0.0,1.0,0.0,0.3176,0.0,0.3857,0.0,0.068,0.0,0.0,0.0
+gpu,0.1,Q4^5,UP-GDN,1,0.9739,0.0,0.999,0.0,0.7392,0.0,0.8224,0.0,0.2302,0.0,0.4536,0.0

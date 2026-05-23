@@ -1,0 +1,6 @@
+samples: 100
+accuracy: 0.8321
+precision: 0.9500
+recall: 0.1612
+f1: 0.2304
+brier: 0.1679

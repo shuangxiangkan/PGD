@@ -1,0 +1,4 @@
+saved 200 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ3_feature/gpu/data/augmented_kary_n5_k4_run2_train
+topology=AQ_5,4, nodes=1024, edges=9216
+gamma: min=0.7004, max=0.9964
+beta: min=0.0078, max=0.2989

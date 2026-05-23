@@ -1,0 +1,4 @@
+saved 20 samples to RQs/results/RQ3_feature_smoke_eval5/gpu/data/kary_n5_k4_run1_train
+topology=K_5,4, nodes=1024, edges=5120
+gamma: min=0.7038, max=0.9972
+beta: min=0.0015, max=0.2972

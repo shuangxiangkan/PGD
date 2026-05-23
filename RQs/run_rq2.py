@@ -44,6 +44,10 @@ FAULT_RATES = [0.1, 0.2, 0.3, 0.4, 0.5]
 METRICS = ["accuracy", "precision", "recall", "f1", "brier", "ece"]
 
 
+def format_fault_rate(value: float) -> str:
+    return f"{value:.2f}".rstrip("0").rstrip(".")
+
+
 def run_command(cmd: list[str], log_path: Path) -> str:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     proc = subprocess.run(
@@ -110,7 +114,7 @@ def dataset_command(case: TopologyCase, output: Path, fault_rate: float, seed: i
 
 
 def method_command(train_data: Path, test_data: Path, seed: int, args) -> list[str]:
-    return [
+    cmd = [
         str(PYTHON),
         "scripts/run_method.py",
         "--dataset",
@@ -134,6 +138,11 @@ def method_command(train_data: Path, test_data: Path, seed: int, args) -> list[s
         "--log-every",
         str(args.log_every),
     ]
+    if args.batch_size > 1:
+        cmd.extend(["--batch-size", str(args.batch_size)])
+    if args.amp:
+        cmd.append("--amp")
+    return cmd
 
 
 def baseline_command(test_data: Path) -> list[str]:
@@ -190,7 +199,7 @@ def round_csv(src: Path, dst: Path) -> None:
                     if key == "runs":
                         out[key] = str(int(float(value)))
                     elif key == "fault_rate":
-                        out[key] = f"{float(value):.1f}"
+                        out[key] = format_fault_rate(float(value))
                     else:
                         out[key] = f"{float(value):.4f}"
                 except ValueError:
@@ -217,6 +226,8 @@ def main() -> None:
     parser.add_argument("--backbone", choices=["gcn", "graphsage", "gat"], default="graphsage")
     parser.add_argument("--refine-top-pct", type=float, default=0.1)
     parser.add_argument("--log-every", type=int, default=20)
+    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--amp", action="store_true")
     parser.add_argument("--seed-base", type=int, default=5200)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "RQs" / "results" / "RQ2")
     parser.add_argument("--force", action="store_true", help="Regenerate datasets even if they exist.")
@@ -236,6 +247,7 @@ def main() -> None:
 
     for fault_rate in args.fault_rates:
         rate_id = f"fr{int(round(fault_rate * 100))}"
+        fault_rate_label = format_fault_rate(fault_rate)
         for case in cases:
             for run_id in range(1, args.runs + 1):
                 seed = args.seed_base + int(round(fault_rate * 1000)) + 1000 * run_id + len(rows)
@@ -244,19 +256,19 @@ def main() -> None:
                 test_data = data_dir / f"{stem}_test"
 
                 if args.force or not train_data.with_suffix(".npz").exists():
-                    print(f"[generate] fr={fault_rate:.1f} {case.label} run={run_id} train")
+                    print(f"[generate] fr={fault_rate_label} {case.label} run={run_id} train")
                     run_command(
                         dataset_command(case, train_data, fault_rate, seed, train_samples, args),
                         log_dir / f"{stem}_generate_train.log",
                     )
                 if args.force or not test_data.with_suffix(".npz").exists():
-                    print(f"[generate] fr={fault_rate:.1f} {case.label} run={run_id} test")
+                    print(f"[generate] fr={fault_rate_label} {case.label} run={run_id} test")
                     run_command(
                         dataset_command(case, test_data, fault_rate, seed + 97, test_samples, args),
                         log_dir / f"{stem}_generate_test.log",
                     )
 
-                print(f"[method] fr={fault_rate:.1f} {case.label} run={run_id}")
+                print(f"[method] fr={fault_rate_label} {case.label} run={run_id}")
                 method_out = run_command(
                     method_command(train_data, test_data, seed, args),
                     log_dir / f"{stem}_up_gdn.log",
@@ -275,7 +287,7 @@ def main() -> None:
                     }
                 )
 
-                print(f"[baseline] fr={fault_rate:.1f} {case.label} run={run_id}")
+                print(f"[baseline] fr={fault_rate_label} {case.label} run={run_id}")
                 baseline_out = run_command(
                     baseline_command(test_data),
                     log_dir / f"{stem}_clustered_pmc.log",

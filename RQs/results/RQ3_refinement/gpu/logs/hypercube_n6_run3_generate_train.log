@@ -1,0 +1,4 @@
+saved 100 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ3_refinement/gpu/data/hypercube_n6_run3_train
+topology=Q_6, nodes=64, edges=192
+gamma: min=0.7022, max=0.9979
+beta: min=0.0025, max=0.2976

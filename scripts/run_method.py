@@ -25,6 +25,9 @@ from pfd.features import build_features
 from pfd.model import GNNPosteriorEstimator, make_bidirectional_edges
 
 
+SampleTensors = tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+
+
 def choose_device(preferred: str = "auto") -> torch.device:
     if preferred != "auto":
         return torch.device(preferred)
@@ -57,6 +60,30 @@ def sample_to_tensors(sample, device: torch.device):
         edge_index.to(device),
         edge_attr_bi.to(device),
         torch.as_tensor(sample.labels.astype(np.float32), dtype=torch.float32, device=device),
+    )
+
+
+def prepare_samples(samples, device: torch.device):
+    return [(sample, sample_to_tensors(sample, device)) for sample in samples]
+
+
+def merge_batch(batch: list[SampleTensors]) -> SampleTensors:
+    x_parts = []
+    edge_index_parts = []
+    edge_attr_parts = []
+    y_parts = []
+    node_offset = 0
+    for x, edge_index, edge_attr, y in batch:
+        x_parts.append(x)
+        edge_index_parts.append(edge_index + node_offset)
+        edge_attr_parts.append(edge_attr)
+        y_parts.append(y)
+        node_offset += x.shape[0]
+    return (
+        torch.cat(x_parts, dim=0),
+        torch.cat(edge_index_parts, dim=1),
+        torch.cat(edge_attr_parts, dim=0),
+        torch.cat(y_parts, dim=0),
     )
 
 
@@ -100,8 +127,8 @@ def append_curve_row(args, epoch: int, train_loss: float, metrics: dict[str, flo
         writer.writerow(row)
 
 
-def train_model(args, train_samples, test_samples, device: torch.device):
-    x0, _, _, _ = sample_to_tensors(train_samples[0], device)
+def train_model(args, train_entries, test_entries, device: torch.device):
+    _, (x0, _, _, _) = train_entries[0]
     model = GNNPosteriorEstimator(
         node_dim=x0.shape[1],
         hidden_dim=args.hidden_dim,
@@ -111,17 +138,25 @@ def train_model(args, train_samples, test_samples, device: torch.device):
     ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     loss_fn = nn.BCEWithLogitsLoss()
+    amp_enabled = args.amp and device.type == "cuda"
 
     model.train()
     for epoch in range(1, args.epochs + 1):
-        random.shuffle(train_samples)
+        random.shuffle(train_entries)
         losses = []
-        for sample in train_samples:
-            x, edge_index, edge_attr, y = sample_to_tensors(sample, device)
-            optimizer.zero_grad()
-            logits, _ = model(x, edge_index, edge_attr)
-            bce = loss_fn(logits, y)
-            probs = torch.sigmoid(logits)
+        for start in range(0, len(train_entries), args.batch_size):
+            batch = [entry[1] for entry in train_entries[start : start + args.batch_size]]
+            x, edge_index, edge_attr, y = merge_batch(batch)
+            optimizer.zero_grad(set_to_none=True)
+            with torch.autocast(
+                device_type=device.type,
+                dtype=torch.bfloat16,
+                enabled=amp_enabled,
+            ):
+                logits, _ = model(x, edge_index, edge_attr)
+            logits_f32 = logits.float()
+            bce = loss_fn(logits_f32, y)
+            probs = torch.sigmoid(logits_f32)
             brier = torch.mean((probs - y) ** 2)
             loss = bce + args.brier_weight * brier
             loss.backward()
@@ -132,14 +167,14 @@ def train_model(args, train_samples, test_samples, device: torch.device):
         if args.curve_output is not None and (
             epoch == 1 or epoch % args.eval_every == 0 or epoch == args.epochs
         ):
-            metrics = evaluate_model(model, test_samples, device, args)
+            metrics = evaluate_model(model, test_entries, device, args)
             append_curve_row(args, epoch, float(np.mean(losses)), metrics)
             model.train()
     return model
 
 
 @torch.no_grad()
-def evaluate_model(model, samples, device: torch.device, args):
+def evaluate_model(model, sample_entries, device: torch.device, args):
     model.eval()
     raw_rows = []
     refined_rows = []
@@ -147,8 +182,8 @@ def evaluate_model(model, samples, device: torch.device, args):
     changed_rates = []
     corrected_rates = []
     wrong_flip_rates = []
-    for sample in samples:
-        x, edge_index, edge_attr, _ = sample_to_tensors(sample, device)
+    for sample, tensors in sample_entries:
+        x, edge_index, edge_attr, _ = tensors
         logits, _ = model(x, edge_index, edge_attr)
         probs = torch.sigmoid(logits).detach().cpu().numpy().astype(np.float32)
         _, _, va, raw_pred = partition_predictions(probs, args.theta_low, args.theta_high)
@@ -238,6 +273,8 @@ def main() -> None:
     parser.add_argument("--eval-every", type=int, default=1)
     parser.add_argument("--curve-output", type=Path, default=None)
     parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
+    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--amp", action="store_true", help="Enable CUDA mixed-precision training.")
     args = parser.parse_args()
 
     random.seed(args.seed)
@@ -254,8 +291,11 @@ def main() -> None:
         train_samples = samples
         test_samples = load_dataset(args.test_dataset)
     print(f"samples: train={len(train_samples)} test={len(test_samples)}")
-    model = train_model(args, train_samples, test_samples, device)
-    metrics = evaluate_model(model, test_samples, device, args)
+    print(f"batch_size: {args.batch_size} amp: {args.amp and device.type == 'cuda'}")
+    train_entries = prepare_samples(train_samples, device)
+    test_entries = prepare_samples(test_samples, device)
+    model = train_model(args, train_entries, test_entries, device)
+    metrics = evaluate_model(model, test_entries, device, args)
     print("test metrics:")
     for key, value in metrics.items():
         print(f"{key}: {value:.4f}")

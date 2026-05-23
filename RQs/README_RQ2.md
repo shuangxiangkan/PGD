@@ -28,6 +28,10 @@ The GPU profile uses larger counterparts:
 - k-ary n-cube: Q4^5
 - Augmented k-ary n-cube: AQ(5,4)
 
+Fault rates:
+
+- 10%, 15%, 20%, 25%, 30%, 35%, 40%, 45%, 50%
+
 Run:
 
 ```bash

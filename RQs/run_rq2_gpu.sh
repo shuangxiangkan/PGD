@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
   --profile gpu \
   --device cuda \
   --runs 3 \
-  --fault-rates 0.1 0.2 0.3 0.4 0.5 \
+  --fault-rates 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 \
   --rounds 2 \
   --gamma-min 0.7 \
   --gamma-max 1.0 \
@@ -18,4 +18,6 @@ cd "$(dirname "$0")/.."
   --epochs 100 \
   --hidden-dim 64 \
   --layers 2 \
-  --backbone graphsage
+  --backbone graphsage \
+  --batch-size 16 \
+  --amp

@@ -1,0 +1,4 @@
+saved 200 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ1/gpu/data/kary_n3_k4_run3_train
+topology=K_3,4, nodes=64, edges=192
+gamma: min=0.7031, max=0.9952
+beta: min=0.0012, max=0.2979

@@ -21,8 +21,8 @@ bash RQs/run_rq1_cpu.sh
 The GPU profile uses larger topologies:
 
 - Hypercube: Q6, Q8, Q10
-- k-ary n-cube: K(3,4), K(4,4), K(5,4)
-- Augmented k-ary n-cube: AQ(3,4), AQ(4,4), AQ(5,4)
+- k-ary n-cube: K(8,2), K(6,3), K(5,4)
+- Augmented k-ary n-cube: AQ(8,2), AQ(6,3), AQ(5,4)
 
 Run:
 

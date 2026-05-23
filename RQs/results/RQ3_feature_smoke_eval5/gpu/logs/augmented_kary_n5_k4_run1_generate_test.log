@@ -1,0 +1,4 @@
+saved 10 samples to RQs/results/RQ3_feature_smoke_eval5/gpu/data/augmented_kary_n5_k4_run1_test
+topology=AQ_5,4, nodes=1024, edges=9216
+gamma: min=0.7491, max=0.9633
+beta: min=0.0054, max=0.2944

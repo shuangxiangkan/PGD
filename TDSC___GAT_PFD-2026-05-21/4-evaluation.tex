@@ -23,60 +23,69 @@ To the best of our knowledge, \tool is the first neural-network-based method for
 For binary diagnosis, we report accuracy, precision, recall, and F1-score. Since \tool produces posterior fault probabilities, we also report Brier score and expected calibration error (ECE) to evaluate probability quality. Lower Brier score and lower ECE indicate better calibrated posterior estimates.
 
 \noindent \textbf{Implementation details.}
-Unless otherwise stated, the GNN posterior estimator is instantiated with GraphSAGE in RQ1 and RQ2; RQ3 further compares GCN, GraphSAGE, and GAT backbones. The default decision threshold for calibrated posterior diagnosis is $\theta_c=0.5$. The least-confident top-$q$ fraction in each preliminary class is selected for posterior refinement, with $q=10\%$ by default. The concrete values of $T$, fault rates, graph sizes, training epochs, hidden dimensions, and optimization settings are reported together with the corresponding experiments.
+In RQ1 and RQ2, the GNN posterior estimator is instantiated with GraphSAGE. In RQ3, we use GraphSAGE for the feature and posterior-refinement studies, and separately compare GCN, GraphSAGE, and GAT in the backbone study. The default decision threshold for calibrated posterior diagnosis is $\theta_c=0.5$. The least-confident top-$q$ fraction in each preliminary class is selected for posterior refinement, with $q=10\%$ by default. The concrete values of $T$, fault rates, graph sizes, training epochs, hidden dimensions, and optimization settings are reported together with the corresponding experiments.
+
+\noindent \textbf{Experimental environment.}
+All experiments are conducted on a workstation equipped with an Intel Core i7-14700KF CPU and an NVIDIA GeForce RTX 5060 Ti GPU with 16 GB memory. The implementation uses Python 3.13, PyTorch 2.12.0 with CUDA 13.0 support, and NumPy 2.4.6. 
 
 \subsection{RQ1: Overall Diagnostic Effectiveness}
 \label{subsec:rq1}
 
-RQ1 evaluates whether \tool can accurately diagnose faulty processors under the probabilistic PMC model. We compare \tool with Clustered-PMC on the three topologies described above. In the CPU-scale setting, we evaluate three small instances from each topology family. The fault rate is fixed to $30\%$, and each result is averaged over three independent runs.
+RQ1 evaluates whether \tool can accurately diagnose faulty processors under the probabilistic PMC model. We compare \tool with Clustered-PMC on the three topologies described above. In the GPU-scale setting, we evaluate three larger instances from each topology family: $Q_6$, $Q_8$, $Q_{10}$, $Q_8^2$, $Q_6^3$, $Q_5^4$, $AQ_{2,8}$, $AQ_{3,6}$, and $AQ_{4,5}$. The fault rate is fixed to $30\%$, and each result is averaged over three independent runs.
+
+For each topology instance and each run, we generate $200$ training samples and $100$ test samples with $T=2$ rounds of mutual testing. Unless otherwise stated, the probabilistic PMC parameters are sampled from $\gamma \sim U(0.7, 1.0)$ and $\beta \sim U(0.0, 0.3)$. The posterior estimator uses a two-layer GraphSAGE backbone with hidden dimension $64$, and is trained for $100$ epochs on GPU. The refinement candidate ratio is fixed to $q=10\%$. To improve training throughput for the GPU-scale setting, we use mini-batches of $16$ samples together with CUDA mixed-precision training.
 
 \begin{table}[h]
 \centering
-\caption{RQ1 diagnostic performance in the CPU-scale setting.}
+\caption{RQ1 diagnostic performance in the GPU-scale setting.}
 \label{tab:rq1_effectiveness}
 \resizebox{0.48\textwidth}{!}{%
 \begin{tabular}{|c|c|c|c|c|c|c|}
 \hline
 \textbf{Topology} & \textbf{Method} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{Brier} \\
 \hline
-$Q_4$ & Clustered-PMC & 0.8590 & 0.9189 & 0.5567 & 0.6587 & 0.1410 \\
-$Q_4$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+$Q_6$ & Clustered-PMC & 0.8401 & 0.9962 & 0.4616 & 0.5959 & 0.1599 \\
+$Q_6$ & \tool & 0.9999 & 0.9998 & 0.9998 & 0.9998 & 0.0001 \\
 \hline
-$Q_5$ & Clustered-PMC & 0.8545 & 0.9819 & 0.5350 & 0.6555 & 0.1455 \\
-$Q_5$ & \tool & 0.9997 & 0.9995 & 0.9994 & 0.9994 & 0.0002 \\
+$Q_8$ & Clustered-PMC & 0.8100 & 1.0000 & 0.3682 & 0.4934 & 0.1900 \\
+$Q_8$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
-$Q_6$ & Clustered-PMC & 0.8538 & 0.9997 & 0.5076 & 0.6320 & 0.1462 \\
-$Q_6$ & \tool & 0.9998 & 1.0000 & 0.9994 & 0.9997 & 0.0001 \\
+$Q_{10}$ & Clustered-PMC & 0.7943 & 1.0000 & 0.3139 & 0.4329 & 0.2057 \\
+$Q_{10}$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
-$Q_4^2$ & Clustered-PMC & 0.8827 & 0.9736 & 0.6278 & 0.7263 & 0.1173 \\
-$Q_4^2$ & \tool & 0.9997 & 1.0000 & 0.9989 & 0.9994 & 0.0003 \\
+$Q_8^2$ & Clustered-PMC & 0.8804 & 0.9781 & 0.6130 & 0.7289 & 0.1196 \\
+$Q_8^2$ & \tool & 0.9991 & 0.9995 & 0.9974 & 0.9984 & 0.0008 \\
 \hline
-$Q_6^2$ & Clustered-PMC & 0.8799 & 0.9709 & 0.6202 & 0.7302 & 0.1201 \\
-$Q_6^2$ & \tool & 0.9981 & 0.9986 & 0.9955 & 0.9969 & 0.0016 \\
+$Q_6^3$ & Clustered-PMC & 0.8415 & 0.9984 & 0.4739 & 0.6097 & 0.1585 \\
+$Q_6^3$ & \tool & 0.9999 & 0.9998 & 0.9997 & 0.9997 & 0.0001 \\
 \hline
-$Q_4^3$ & Clustered-PMC & 0.8467 & 0.9981 & 0.4848 & 0.6140 & 0.1533 \\
-$Q_4^3$ & \tool & 0.9997 & 0.9994 & 0.9997 & 0.9995 & 0.0003 \\
+$Q_5^4$ & Clustered-PMC & 0.8124 & 1.0000 & 0.3762 & 0.5076 & 0.1876 \\
+$Q_5^4$ & \tool & 1.0000 & 0.9999 & 0.9999 & 1.0000 & 0.0000 \\
 \hline
-$AQ_{2,4}$ & Clustered-PMC & 0.8385 & 0.8722 & 0.4833 & 0.5900 & 0.1615 \\
-$AQ_{2,4}$ & \tool & 0.9997 & 0.9991 & 1.0000 & 0.9995 & 0.0003 \\
+$AQ_{2,8}$ & Clustered-PMC & 0.8422 & 0.9914 & 0.4705 & 0.5991 & 0.1578 \\
+$AQ_{2,8}$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
-$AQ_{2,6}$ & Clustered-PMC & 0.8556 & 0.9884 & 0.5278 & 0.6457 & 0.1444 \\
-$AQ_{2,6}$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+$AQ_{3,6}$ & Clustered-PMC & 0.7969 & 0.9967 & 0.3250 & 0.4431 & 0.2031 \\
+$AQ_{3,6}$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
-$AQ_{3,4}$ & Clustered-PMC & 0.7882 & 0.9389 & 0.2865 & 0.3971 & 0.2118 \\
-$AQ_{3,4}$ & \tool & 0.9999 & 0.9997 & 1.0000 & 0.9999 & 0.0001 \\
+$AQ_{4,5}$ & Clustered-PMC & 0.7602 & 0.9967 & 0.2027 & 0.2948 & 0.2398 \\
+$AQ_{4,5}$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
 \end{tabular}%
 }
 \vspace{1mm}
 \end{table}
 
-Table~\ref{tab:rq1_effectiveness} shows that \tool consistently improves recall and F1-score over Clustered-PMC while maintaining high precision. This is important because missed faulty processors may continue to affect system reliability.
+Table~\ref{tab:rq1_effectiveness} shows that \tool consistently improves recall and F1-score over Clustered-PMC while maintaining high precision. Across all nine GPU-scale topologies, \tool achieves near-perfect diagnosis, with F1 scores between $0.9984$ and $1.0000$ and Brier scores between $0.0000$ and $0.0008$. In contrast, Clustered-PMC remains much more conservative: its precision is usually close to one, but its recall drops substantially as the topology becomes larger or more densely augmented, leading to markedly lower F1 scores.
+
+More specifically, on the hypercube family, the F1 score of Clustered-PMC decreases from $0.5959$ on $Q_6$ to $0.4329$ on $Q_{10}$, while \tool remains essentially perfect on all three instances. A similar pattern appears on the augmented $k$-ary family: Clustered-PMC reaches $0.5991$ on $AQ_{2,8}$, drops to $0.4431$ on $AQ_{3,6}$, and further drops to $0.2948$ on $AQ_{4,5}$, whereas \tool maintains an F1 score of $1.0000$ throughout. Even on the comparatively easier $k$-ary case $Q_8^2$, where Clustered-PMC attains its best F1 score of $0.7289$, \tool still improves the F1 score to $0.9984$. These results indicate that the posterior-estimation-and-refinement pipeline is not tied to one specific topology parameterization; instead, it remains highly effective across diverse $(k,n)$ combinations, while the rule-based baseline suffers mainly from low recall and therefore misses a nontrivial portion of faulty processors.
 
 \subsection{RQ2: Performance Under Different Fault Rates}
 \label{subsec:rq2_fault_rate}
 
 RQ2 evaluates the robustness of \tool as the number of faulty processors increases. We vary the fault rate and compare \tool with Clustered-PMC under the same syndrome generation setting. This experiment is designed to test whether the posterior-based diagnosis remains effective when local neighborhoods contain more faulty nodes and the observed syndromes become more ambiguous.
+
+In the GPU-scale setting, we use one representative larger instance from each topology family, namely $Q_{10}$, $Q_4^5$, and $AQ_{5,4}$. The fault rate is varied from $10\%$ to $50\%$ in steps of $5\%$, i.e., $\{10\%, 15\%, 20\%, 25\%, 30\%, 35\%, 40\%, 45\%, 50\%\}$. The remaining settings are the same as in RQ1: $T=2$, $\gamma \sim U(0.7, 1.0)$, $\beta \sim U(0.0, 0.3)$, $200$ training samples and $100$ test samples per topology instance, a two-layer GraphSAGE posterior estimator with hidden dimension $64$, $100$ training epochs, and posterior refinement ratio $q=10\%$. Each rate-wise result is averaged over the three topologies and three independent runs per topology.
 
 \begin{table}[h]
 \centering
@@ -87,27 +96,41 @@ RQ2 evaluates the robustness of \tool as the number of faulty processors increas
 \hline
 \textbf{Fault Rate} & \textbf{Method} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} \\
 \hline
-10\% & Clustered-PMC & -- & -- & -- & -- & -- \\
-10\% & \tool & -- & -- & -- & -- & -- \\
+10\% & Clustered-PMC & 0.9268 & 0.9356 & 0.2656 & 0.3631 & -- \\
+10\% & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
-20\% & Clustered-PMC & -- & -- & -- & -- & -- \\
-20\% & \tool & -- & -- & -- & -- & -- \\
+15\% & Clustered-PMC & 0.8855 & 0.9533 & 0.2384 & 0.3289 & -- \\
+15\% & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
-30\% & Clustered-PMC & -- & -- & -- & -- & -- \\
-30\% & \tool & -- & -- & -- & -- & -- \\
+20\% & Clustered-PMC & 0.8534 & 0.9822 & 0.2679 & 0.3686 & -- \\
+20\% & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
-40\% & Clustered-PMC & -- & -- & -- & -- & -- \\
-40\% & \tool & -- & -- & -- & -- & -- \\
+25\% & Clustered-PMC & 0.8073 & 0.9844 & 0.2291 & 0.3263 & -- \\
+25\% & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
 \hline
-50\% & Clustered-PMC & -- & -- & -- & -- & -- \\
-50\% & \tool & -- & -- & -- & -- & -- \\
+30\% & Clustered-PMC & 0.7748 & 0.9867 & 0.2486 & 0.3496 & -- \\
+30\% & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+\hline
+35\% & Clustered-PMC & 0.7356 & 0.9943 & 0.2438 & 0.3450 & -- \\
+35\% & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+\hline
+40\% & Clustered-PMC & 0.6949 & 0.9977 & 0.2380 & 0.3398 & -- \\
+40\% & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+\hline
+45\% & Clustered-PMC & 0.6618 & 0.9952 & 0.2489 & 0.3528 & -- \\
+45\% & \tool & 0.9999 & 0.9999 & 0.9999 & 0.9999 & 0.0001 \\
+\hline
+50\% & Clustered-PMC & 0.6193 & 0.9959 & 0.2389 & 0.3436 & -- \\
+50\% & \tool & 0.9998 & 0.9998 & 0.9998 & 0.9998 & 0.0002 \\
 \hline
 \end{tabular}%
 }
 \vspace{1mm}
 \end{table}
 
-Table~\ref{tab:rq2_fault_rate} will show how the diagnosis quality changes as the fault rate increases. The key question is whether \tool degrades more gracefully than the traditional rule-based baseline, especially in recall, F1-score, and calibration.
+Table~\ref{tab:rq2_fault_rate} shows that \tool remains highly robust as the fault rate increases. From $10\%$ to $40\%$, \tool maintains essentially perfect diagnosis, with accuracy and F1 both equal to $1.0000$ after rounding. Even at the highest tested fault rates of $45\%$ and $50\%$, the performance drop is negligible: the F1 score remains $0.9999$ and $0.9998$, respectively, while the ECE stays below $2.5 \times 10^{-4}$.
+
+By contrast, Clustered-PMC degrades substantially as the fault rate increases. Its accuracy decreases from $0.9268$ at $10\%$ faults to $0.6193$ at $50\%$ faults. More importantly, its recall remains consistently low across all rates, fluctuating only between about $0.23$ and $0.27$, which leads to poor F1 scores in the range of $0.3263$--$0.3686$ for most settings. This behavior indicates that the rule-based baseline is overly conservative under the probabilistic PMC setting: it keeps precision high, but misses many faulty processors once the local syndromes become noisier and more ambiguous. In contrast, the posterior-based diagnosis in \tool degrades much more gracefully and preserves both discrimination and calibration quality over the full fault-rate range.
 
 \subsection{RQ3: Ablation Study}
 \label{subsec:rq3_ablation}
@@ -123,27 +146,64 @@ We first study the node feature design by removing one feature at a time while k
     \item \textbf{full \tool}: uses all diagnostic node features and posterior refinement.
 \end{itemize}
 
+In the updated GPU setting, this ablation is conducted on the smaller representative topology instances $Q_6$, $Q_8^2$, and $AQ_{2,8}$ with fault rate $30\%$, $T=2$, $\gamma \sim U(0.7, 1.0)$, and $\beta \sim U(0.0, 0.3)$. For each topology instance and each run, we generate $100$ training samples and $100$ test samples. The posterior estimator uses a two-layer GraphSAGE backbone with hidden dimension $64$ and posterior refinement ratio $q=10\%$. To reduce GPU runtime while keeping the convergence comparison meaningful, we train for $60$ epochs, evaluate every $5$ epochs, and use mini-batches of $16$ samples together with CUDA mixed-precision training. Each variant is averaged over the three topologies and three independent runs per topology.
+
 \begin{table}[h]
 \centering
-\caption{Node feature ablation.}
+\caption{Node feature ablation with convergence-sensitive metrics.}
 \label{tab:rq3_feature}
 \resizebox{0.48\textwidth}{!}{%
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
-\textbf{Variant} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} \\
+\textbf{Variant} & \textbf{Final F1} & \textbf{ECE} & \textbf{Best-F1 Epoch} & \textbf{Epoch to F1 $\geq 0.99$} & \textbf{Mean F1 over Epochs} \\
 \hline
-w/o match ratio & -- & -- & -- & -- & -- \\
-w/o mismatch ratio & -- & -- & -- & -- & -- \\
-w/o dispersion & -- & -- & -- & -- & -- \\
-full \tool & -- & -- & -- & -- & -- \\
+w/o match ratio & 0.9984 & 0.0012 & 31.67 & 5.67 & 0.9668 \\
+w/o mismatch ratio & 0.9986 & 0.0012 & 31.67 & 4.56 & 0.9736 \\
+w/o dispersion & 0.9978 & 0.0020 & 26.67 & 6.22 & 0.9812 \\
+full \tool & 0.9985 & 0.0011 & 25.56 & 4.78 & 0.9920 \\
 \hline
 \end{tabular}%
 }
 \vspace{1mm}
 \end{table}
 
+\begin{table*}[t]
+\centering
+\caption{Complete topology-wise results for the feature ablation study.}
+\label{tab:rq3_feature_detail}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\textbf{Topology} & \textbf{Variant} & \textbf{Final F1} & \textbf{ECE} & \textbf{Best-F1 Epoch} & \textbf{Epoch to F1 $\geq 0.99$} & \textbf{Mean F1 over Epochs} \\
+\hline
+$Q_6$ & w/o match ratio & 0.9993 & 0.0004 & 18.33 & 5.00 & 0.9363 \\
+$Q_6$ & w/o mismatch ratio & 0.9993 & 0.0004 & 13.33 & 3.67 & 0.9617 \\
+$Q_6$ & w/o dispersion & 0.9995 & 0.0004 & 18.33 & 3.67 & 0.9700 \\
+$Q_6$ & full \tool & 0.9994 & 0.0004 & 18.33 & 1.00 & 0.9990 \\
+\hline
+$Q_8^2$ & w/o match ratio & 0.9971 & 0.0026 & 56.67 & 7.00 & 0.9800 \\
+$Q_8^2$ & w/o mismatch ratio & 0.9974 & 0.0025 & 56.67 & 5.00 & 0.9849 \\
+$Q_8^2$ & w/o dispersion & 0.9956 & 0.0041 & 51.67 & 10.00 & 0.9884 \\
+$Q_8^2$ & full \tool & 0.9970 & 0.0025 & 46.67 & 8.33 & 0.9810 \\
+\hline
+$AQ_{2,8}$ & w/o match ratio & 0.9989 & 0.0007 & 20.00 & 5.00 & 0.9841 \\
+$AQ_{2,8}$ & w/o mismatch ratio & 0.9990 & 0.0007 & 25.00 & 5.00 & 0.9743 \\
+$AQ_{2,8}$ & w/o dispersion & 0.9983 & 0.0014 & 10.00 & 5.00 & 0.9852 \\
+$AQ_{2,8}$ & full \tool & 0.9992 & 0.0006 & 11.67 & 5.00 & 0.9959 \\
+\hline
+\end{tabular}%
+}
+\vspace{1mm}
+\end{table*}
+
+Table~\ref{tab:rq3_feature} shows that all four feature variants still achieve strong diagnosis performance on the smaller topology set, but the differences are now more visible than in the larger-topology setting. The final F1 scores range from $0.9978$ to $0.9986$, and the ECE values lie between $0.0011$ and $0.0020$, indicating that the reduced topology scale makes feature ablations more distinguishable in both discrimination and calibration.
+
+The convergence-sensitive metrics show a clearer advantage for the full feature set. Although removing the mismatch ratio attains the highest final F1 by a small margin ($0.9986$ versus $0.9985$ for the full model), the full model reaches its best F1 substantially earlier on average (epoch $25.56$ versus $31.67$) and achieves the highest mean F1 over evaluated epochs ($0.9920$), indicating better overall training efficiency and stability. Removing dispersion is the weakest variant in final performance, yielding the lowest final F1 ($0.9978$) and the highest ECE ($0.0020$), which suggests that mismatch-dispersion information is important for stable posterior calibration on these smaller topologies. Removing the match ratio also slows convergence and reduces training-phase quality, as reflected by its lower mean F1 over epochs ($0.9668$). The complete topology-wise results are reported in Table~\ref{tab:rq3_feature_detail}. They show that the largest difficulty consistently comes from $Q_8^2$, while $Q_6$ and $AQ_{2,8}$ remain nearly saturated across all feature variants. Overall, these results indicate that the three diagnostic features remain complementary: even when the final diagnosis scores stay high, the complete feature set yields the most balanced combination of convergence speed, stability, and calibration quality.
+
 \noindent\textbf{Posterior refinement study.}
 We then isolate the effect of the local syndrome-consistency posterior refinement. The variant without posterior refinement directly thresholds the GNN posterior scores, while the full model applies the refinement step to selected low-confidence predictions.
+
+This study uses the same smaller GPU topology set as the feature ablation, namely $Q_6$, $Q_8^2$, and $AQ_{2,8}$, together with fault rate $30\%$, $100$ training samples, $100$ test samples, $60$ training epochs, evaluation every $5$ epochs, mini-batch size $16$, and CUDA mixed-precision training. The GraphSAGE posterior estimator and all feature settings are kept unchanged so that the only difference is whether the local posterior-refinement step is applied.
 
 \begin{table}[h]
 \centering
@@ -154,16 +214,45 @@ We then isolate the effect of the local syndrome-consistency posterior refinemen
 \hline
 \textbf{Variant} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} \\
 \hline
-w/o posterior refinement & -- & -- & -- & -- & -- \\
-full \tool & -- & -- & -- & -- & -- \\
+w/o posterior refinement & 0.9984 & 0.9982 & 0.9966 & 0.9973 & 0.0020 \\
+full \tool & 0.9990 & 0.9986 & 0.9982 & 0.9984 & 0.0012 \\
 \hline
 \end{tabular}%
 }
 \vspace{1mm}
 \end{table}
 
+\begin{table*}[t]
+\centering
+\caption{Complete topology-wise results for the posterior refinement study.}
+\label{tab:rq3_refinement_detail}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Topology} & \textbf{Variant} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} & \textbf{Best-F1 Epoch} & \textbf{Epoch to F1 $\geq 0.99$} & \textbf{Mean F1 over Epochs} \\
+\hline
+$Q_6$ & w/o posterior refinement & 0.9992 & 0.9985 & 0.9988 & 0.9986 & 0.0010 & 43.33 & 10.00 & 0.9269 \\
+$Q_6$ & full \tool & 0.9997 & 0.9993 & 0.9998 & 0.9996 & 0.0003 & 23.33 & 5.00 & 0.9968 \\
+\hline
+$Q_8^2$ & w/o posterior refinement & 0.9969 & 0.9972 & 0.9925 & 0.9947 & 0.0039 & 55.00 & 18.33 & 0.9135 \\
+$Q_8^2$ & full \tool & 0.9979 & 0.9972 & 0.9958 & 0.9964 & 0.0027 & 56.67 & 8.33 & 0.9674 \\
+\hline
+$AQ_{2,8}$ & w/o posterior refinement & 0.9993 & 0.9990 & 0.9986 & 0.9988 & 0.0011 & 55.00 & 10.00 & 0.9199 \\
+$AQ_{2,8}$ & full \tool & 0.9995 & 0.9992 & 0.9991 & 0.9991 & 0.0005 & 15.00 & 5.00 & 0.9736 \\
+\hline
+\end{tabular}%
+}
+\vspace{1mm}
+\end{table*}
+
+Table~\ref{tab:rq3_refinement} shows that posterior refinement consistently improves the final diagnosis quality on the smaller topology set. Compared with direct thresholding of the raw GNN posterior, the refinement step raises F1 from $0.9973$ to $0.9984$ and reduces ECE from $0.0020$ to $0.0012$, indicating that the refined posterior is not only more accurate but also better calibrated. The improvement is mainly driven by higher recall, which increases from $0.9966$ to $0.9982$, while precision also improves slightly.
+
+The convergence statistics show an even clearer effect. With posterior refinement, the mean F1 over evaluated epochs increases from $0.9201$ to $0.9793$, and the mean best-F1 epoch moves much earlier, from $51.11$ to $31.67$. This indicates that the refinement step does more than polish the final prediction: it produces a more stable diagnosis trajectory throughout training. On average, the refinement module changes only about $0.82\%$ of node predictions in the final evaluation, yet it yields a measurable gain in both F1 and calibration, which suggests that a small number of carefully selected low-confidence corrections is sufficient to improve overall diagnosis quality. Table~\ref{tab:rq3_refinement_detail} provides the complete topology-wise data and shows that the gain is consistent across all three topologies, with the largest absolute benefit appearing on $Q_8^2$, where refinement improves F1 from $0.9947$ to $0.9964$ and shortens the time to F1 $\geq 0.99$ from $18.33$ to $8.33$ epochs.
+
 \noindent\textbf{Backbone comparison.}
 We further instantiate the GNN posterior estimator with different graph encoders while keeping the same diagnostic features and posterior refinement procedure. The reported results are averaged over the three representative topologies.
+
+This comparison uses the same smaller GPU topology set $Q_6$, $Q_8^2$, and $AQ_{2,8}$, with fault rate $30\%$, $100$ training samples, $100$ test samples, $60$ training epochs, evaluation every $5$ epochs, mini-batch size $16$, and CUDA mixed-precision training. All backbones use the same node features and the same posterior-refinement procedure so that the only varying component is the graph encoder.
 
 \begin{table}[h]
 \centering
@@ -172,15 +261,45 @@ We further instantiate the GNN posterior estimator with different graph encoders
 \resizebox{0.48\textwidth}{!}{%
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
-\textbf{Backbone} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} \\
+\textbf{Backbone} & \textbf{Final F1} & \textbf{ECE} & \textbf{Best-F1 Epoch} & \textbf{Epoch to F1 $\geq 0.99$} & \textbf{Mean F1 over Epochs} \\
 \hline
-GCN & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
-GraphSAGE & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
-GAT & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+GCN & 0.9977 & 0.0024 & 37.78 & 15.00 & 0.9562 \\
+GraphSAGE & 0.9985 & 0.0012 & 35.00 & 6.22 & 0.9630 \\
+GAT & 0.9983 & 0.0022 & 45.56 & 12.78 & 0.9401 \\
 \hline
 \end{tabular}%
 }
 \vspace{1mm}
 \end{table}
 
-Tables~\ref{tab:rq3_feature}, \ref{tab:rq3_refinement}, and~\ref{tab:rq3_backbone} quantify the contribution of each node feature, the effect of posterior refinement, and the sensitivity to the GNN backbone. Since the three backbones achieve comparable diagnostic performance in our setting, we use GraphSAGE as the default backbone in RQ1 and RQ2 because it is simple and stable.
+\begin{table*}[t]
+\centering
+\caption{Complete topology-wise results for the backbone comparison study.}
+\label{tab:rq3_backbone_detail}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\textbf{Topology} & \textbf{Backbone} & \textbf{Final F1} & \textbf{ECE} & \textbf{Best-F1 Epoch} & \textbf{Epoch to F1 $\geq 0.99$} & \textbf{Mean F1 over Epochs} \\
+\hline
+$Q_6$ & GCN & 0.9996 & 0.0009 & 28.33 & 15.00 & 0.9589 \\
+$Q_6$ & GraphSAGE & 0.9995 & 0.0003 & 13.33 & 3.67 & 0.9700 \\
+$Q_6$ & GAT & 0.9997 & 0.0008 & 41.67 & 10.00 & 0.9378 \\
+\hline
+$Q_8^2$ & GCN & 0.9947 & 0.0050 & 55.00 & 18.33 & 0.9437 \\
+$Q_8^2$ & GraphSAGE & 0.9969 & 0.0026 & 53.33 & 10.00 & 0.9234 \\
+$Q_8^2$ & GAT & 0.9962 & 0.0044 & 53.33 & 16.67 & 0.9483 \\
+\hline
+$AQ_{2,8}$ & GCN & 0.9989 & 0.0014 & 30.00 & 11.67 & 0.9659 \\
+$AQ_{2,8}$ & GraphSAGE & 0.9990 & 0.0006 & 38.33 & 5.00 & 0.9957 \\
+$AQ_{2,8}$ & GAT & 0.9990 & 0.0013 & 41.67 & 11.67 & 0.9341 \\
+\hline
+\end{tabular}%
+}
+\vspace{1mm}
+\end{table*}
+
+Table~\ref{tab:rq3_backbone} shows that all three graph encoders remain effective, but GraphSAGE provides the best overall tradeoff on the smaller topology set. It attains the highest final F1 ($0.9985$), the lowest ECE ($0.0012$), and the fastest rise to F1 $\geq 0.99$ (epoch $6.22$ on average). GAT reaches a slightly lower final F1 ($0.9983$) and converges more slowly, with the latest best-F1 epoch ($45.56$) and the lowest mean F1 over evaluated epochs ($0.9401$). GCN performs competitively, but its final F1 ($0.9977$) and calibration are both slightly worse than GraphSAGE.
+
+The complete topology-wise results in Table~\ref{tab:rq3_backbone_detail} show that the backbone preference depends somewhat on the topology, but the overall ranking is still stable. GraphSAGE is clearly the fastest-converging choice on all three topologies, and it also yields the best calibrated posterior on each topology. GAT attains the highest final F1 on $Q_6$, but this advantage does not transfer to $Q_8^2$ or $AQ_{2,8}$, and its convergence is consistently slower. GCN is competitive on $Q_6$ and $AQ_{2,8}$, but is weakest on $Q_8^2$.
+
+Tables~\ref{tab:rq3_feature}, \ref{tab:rq3_feature_detail}, \ref{tab:rq3_refinement}, \ref{tab:rq3_refinement_detail}, \ref{tab:rq3_backbone}, and~\ref{tab:rq3_backbone_detail} together show that the complete \tool design is supported by three consistent observations on the smaller topology set. First, the full node-feature set mainly improves convergence stability and calibration rather than dramatically changing the final diagnosis score. Second, posterior refinement yields a clear gain in both F1 and ECE with only a small number of selective prediction changes. Third, among the tested GNN encoders, GraphSAGE offers the most favorable balance of final accuracy, calibration, and training efficiency. Therefore, using GraphSAGE as the default backbone in RQ1 and RQ2 remains justified not only by simplicity, but also by the strongest empirical balance observed in the RQ3 ablation study.

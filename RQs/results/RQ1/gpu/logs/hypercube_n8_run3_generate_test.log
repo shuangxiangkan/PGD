@@ -1,0 +1,4 @@
+saved 100 samples to /home/shuangxiang/workspace/sherry/PGD/RQs/results/RQ1/gpu/data/hypercube_n8_run3_test
+topology=Q_8, nodes=256, edges=1024
+gamma: min=0.7001, max=0.9954
+beta: min=0.0004, max=0.2983

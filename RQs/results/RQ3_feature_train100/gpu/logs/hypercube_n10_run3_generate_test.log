@@ -1,0 +1,4 @@
+saved 100 samples to RQs/results/RQ3_feature_train100/gpu/data/hypercube_n10_run3_test
+topology=Q_10, nodes=1024, edges=5120
+gamma: min=0.7018, max=0.9998
+beta: min=0.0037, max=0.2988

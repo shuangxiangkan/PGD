@@ -1,0 +1,2 @@
+epoch,train_loss,backbone,drop_feature,dataset,test_dataset,raw_accuracy,raw_precision,raw_recall,raw_f1,raw_brier,raw_ece,raw_topk,refined_accuracy,refined_precision,refined_recall,refined_f1,refined_brier,refined_ece,refined_topk,refinement_change_rate,refinement_corrected_rate,refinement_wrong_flip_rate
+1,0.6860942542552948,graphsage,dispersion,kary_n5_k4_run1_train,kary_n5_k4_run1_test,0.7001953125,0.0,0.0,0.0,0.21483658286633434,0.12488385103933979,0.9928338762214984,0.7001953125,0.0,0.0,0.0,0.21483658286633434,0.12488385103933979,0.9928338762214984,0.0,0.0,0.0

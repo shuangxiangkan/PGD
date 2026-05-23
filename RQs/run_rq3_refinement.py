@@ -35,9 +35,9 @@ CPU_CASES = [
 ]
 
 GPU_CASES = [
-    TopologyCase("hypercube", "Q10", "hypercube", 10),
-    TopologyCase("kary", "Q4^5", "kary", 5, 4),
-    TopologyCase("augmented_kary", "AQ(5,4)", "augmented_kary", 5, 4),
+    TopologyCase("hypercube", "Q6", "hypercube", 6),
+    TopologyCase("kary", "Q8^2", "kary", 2, 8),
+    TopologyCase("augmented_kary", "AQ(2,8)", "augmented_kary", 2, 8),
 ]
 
 VARIANTS = [
@@ -121,7 +121,7 @@ def dataset_command(case: TopologyCase, output: Path, seed: int, samples: int, a
 
 
 def method_command(train_data: Path, test_data: Path, curve_path: Path, seed: int, args) -> list[str]:
-    return [
+    cmd = [
         str(PYTHON),
         "scripts/run_method.py",
         "--dataset",
@@ -149,6 +149,11 @@ def method_command(train_data: Path, test_data: Path, curve_path: Path, seed: in
         "--log-every",
         str(args.log_every),
     ]
+    if args.batch_size > 1:
+        cmd.extend(["--batch-size", str(args.batch_size)])
+    if args.amp:
+        cmd.append("--amp")
+    return cmd
 
 
 def read_curve(path: Path) -> list[dict[str, str]]:
@@ -259,6 +264,8 @@ def main() -> None:
     parser.add_argument("--refine-top-pct", type=float, default=0.1)
     parser.add_argument("--eval-every", type=int, default=1)
     parser.add_argument("--log-every", type=int, default=20)
+    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--amp", action="store_true")
     parser.add_argument("--seed-base", type=int, default=8300)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "RQs" / "results" / "RQ3_refinement")
     parser.add_argument("--force", action="store_true", help="Regenerate datasets and rerun curves.")

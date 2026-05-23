@@ -1,0 +1,7 @@
+profile,fault_rate,family,topology,method,run,seed,accuracy,precision,recall,f1,brier,ece
+gpu,0.1,hypercube,Q10,UP-GDN,1,6300,0.9004,0.0,0.0,0.0,0.244,0.3926
+gpu,0.1,hypercube,Q10,Clustered-PMC,1,6300,0.9113,1.0,0.1098,0.1904,0.0887,0.0
+gpu,0.1,kary,Q4^5,UP-GDN,1,6302,0.9739,0.999,0.7392,0.8224,0.2302,0.4536
+gpu,0.1,kary,Q4^5,Clustered-PMC,1,6302,0.932,1.0,0.3176,0.3857,0.068,0.0
+gpu,0.1,augmented_kary,"AQ(5,4)",UP-GDN,1,6304,0.9004,0.0,0.0,0.0,0.1878,0.3242
+gpu,0.1,augmented_kary,"AQ(5,4)",Clustered-PMC,1,6304,0.9153,0.9,0.15,0.23,0.0847,0.0

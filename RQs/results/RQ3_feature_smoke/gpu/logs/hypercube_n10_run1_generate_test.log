@@ -1,0 +1,4 @@
+saved 10 samples to RQs/results/RQ3_feature_smoke/gpu/data/hypercube_n10_run1_test
+topology=Q_10, nodes=1024, edges=5120
+gamma: min=0.7117, max=0.9971
+beta: min=0.0267, max=0.2815
