@@ -10,12 +10,12 @@ def train_single_sample(sample, epochs: int = 200, lr: float = 1e-3, hidden_dim:
     import torch
     from torch import nn
 
-    from pfd.model import ReliabilityAwareGNN, make_bidirectional_edges
+    from pfd.model import GNNPosteriorEstimator, make_bidirectional_edges
 
     x, edge_attr, _ = build_features(sample)
     edge_index, edge_attr_bi = make_bidirectional_edges(sample.edges, edge_attr)
     y = torch.as_tensor(sample.labels.astype(np.float32))
-    model = ReliabilityAwareGNN(x.shape[1], edge_attr.shape[1], hidden_dim=hidden_dim)
+    model = GNNPosteriorEstimator(x.shape[1], hidden_dim=hidden_dim)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     loss_fn = nn.BCEWithLogitsLoss()
     x_t = torch.as_tensor(x, dtype=torch.float32)

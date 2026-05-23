@@ -1,0 +1,6 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+This paper presented \tool, an uncertainty-aware probabilistic graph diagnosis framework for interconnection networks. Unlike classification-oriented GNN diagnosis methods, \tool formulates probabilistic PMC diagnosis as posterior inference and outputs calibrated node-wise fault probabilities, uncertainty scores, and top-$k$ suspicious-node rankings. The framework fuses interpretable statistical summaries with raw multi-round syndrome observations and performs reliability-aware graph message passing to reduce the influence of unreliable edge evidence. Parameter-randomized training further improves robustness when the diagnostic reliability parameters are unknown or shifted.
+
+Experimental results on hypercubes and augmented $k$-ary $n$-cubes demonstrate strong diagnostic performance across network scales and fault rates. The proposed evaluation protocol further emphasizes calibration, risk-aware ranking, and robustness to $\gamma,\beta$ shifts, which are essential for dependable probabilistic diagnosis in realistic noisy systems. Future work will extend the framework to joint node-link fault diagnosis and validate it on real operational traces.

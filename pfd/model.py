@@ -129,6 +129,107 @@ class VanillaGNNClassifier(nn.Module):
         return self.head(h).squeeze(-1)
 
 
+class GCNLayer(nn.Module):
+    """GCN-style normalized neighborhood aggregation with self loops."""
+
+    def __init__(self, hidden_dim: int, dropout: float = 0.0):
+        super().__init__()
+        self.linear = nn.Linear(hidden_dim, hidden_dim)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, h: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+        src, dst = edge_index
+        num_nodes = h.shape[0]
+        self_nodes = torch.arange(num_nodes, dtype=torch.long, device=h.device)
+        src_all = torch.cat([src, self_nodes])
+        dst_all = torch.cat([dst, self_nodes])
+        deg = torch.zeros(num_nodes, dtype=h.dtype, device=h.device)
+        deg.index_add_(0, dst_all, torch.ones_like(dst_all, dtype=h.dtype))
+        norm = deg[src_all].clamp_min(1.0).rsqrt() * deg[dst_all].clamp_min(1.0).rsqrt()
+        agg = torch.zeros_like(h)
+        agg.index_add_(0, dst_all, h[src_all] * norm.unsqueeze(-1))
+        out = torch.relu(self.linear(agg) + h)
+        return self.dropout(out)
+
+
+class GraphSAGELayer(nn.Module):
+    """GraphSAGE mean aggregation."""
+
+    def __init__(self, hidden_dim: int, dropout: float = 0.0):
+        super().__init__()
+        self.update = MLP(hidden_dim * 2, hidden_dim, hidden_dim, dropout)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, h: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+        src, dst = edge_index
+        agg = torch.zeros_like(h)
+        agg.index_add_(0, dst, h[src])
+        deg = torch.zeros(h.shape[0], dtype=h.dtype, device=h.device)
+        deg.index_add_(0, dst, torch.ones_like(dst, dtype=h.dtype))
+        agg = agg / deg.clamp_min(1.0).unsqueeze(-1)
+        out = torch.relu(self.update(torch.cat([h, agg], dim=-1)) + h)
+        return self.dropout(out)
+
+
+class GATLayer(nn.Module):
+    """Single-head graph attention layer."""
+
+    def __init__(self, hidden_dim: int, dropout: float = 0.0):
+        super().__init__()
+        self.linear = nn.Linear(hidden_dim, hidden_dim)
+        self.attn = nn.Linear(hidden_dim * 2, 1)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, h: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+        src, dst = edge_index
+        z = self.linear(h)
+        pair = torch.cat([z[dst], z[src]], dim=-1)
+        logits = torch.nn.functional.leaky_relu(self.attn(pair).squeeze(-1), negative_slope=0.2)
+        alpha = torch.zeros_like(logits)
+        for u in torch.unique(dst):
+            mask = dst == u
+            alpha[mask] = torch.softmax(logits[mask], dim=0)
+        agg = torch.zeros_like(z)
+        agg.index_add_(0, dst, z[src] * alpha.unsqueeze(-1))
+        out = torch.relu(agg + h)
+        return self.dropout(out)
+
+
+class GNNPosteriorEstimator(nn.Module):
+    """Node-feature GNN posterior estimator used before local refinement."""
+
+    def __init__(
+        self,
+        node_dim: int,
+        hidden_dim: int = 64,
+        num_layers: int = 2,
+        dropout: float = 0.1,
+        backbone: str = "graphsage",
+    ):
+        super().__init__()
+        self.node_encoder = MLP(node_dim, hidden_dim, hidden_dim, dropout)
+        layer_cls = {
+            "gcn": GCNLayer,
+            "graphsage": GraphSAGELayer,
+            "gat": GATLayer,
+        }.get(backbone)
+        if layer_cls is None:
+            raise ValueError(f"unknown backbone: {backbone}")
+        self.layers = nn.ModuleList(layer_cls(hidden_dim, dropout) for _ in range(num_layers))
+        self.head = nn.Linear(hidden_dim, 1)
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        edge_index: torch.Tensor,
+        edge_attr: torch.Tensor | None = None,
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        h = self.node_encoder(x)
+        for layer in self.layers:
+            h = layer(h, edge_index)
+        return self.head(h).squeeze(-1), {}
+
+
 def make_bidirectional_edges(edges, edge_attr):
     """Duplicate undirected edge features for both message-passing directions."""
     src = torch.as_tensor(edges[:, 0], dtype=torch.long)

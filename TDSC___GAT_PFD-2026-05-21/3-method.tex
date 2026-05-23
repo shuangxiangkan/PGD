@@ -1,0 +1,152 @@
+\section{Methodology}
+\label{sec:methodology}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Figures/framework.pdf}
+    \caption{\tool framework. The proposed model first estimates node-wise fault posterior probabilities with a GNN and then refines uncertain predictions by checking local syndrome consistency under the probabilistic PMC model.}
+    \label{fig:framework}
+\end{figure*}
+
+\subsection{Overview}
+
+Building on the probabilistic PMC formulation, this section presents the design of \tool for uncertainty-aware graph diagnosis. The method consists of four stages. First, multi-round mutual-test outcomes are summarized into simple node-level diagnostic features. Second, a GNN posterior estimator produces a fault probability for each processor. Third, high-confidence predictions are directly assigned to fault-free or faulty classes, while uncertain predictions are selected for further checking. Finally, selected predictions are refined by evaluating their local syndrome consistency with high-confidence neighbors under the probabilistic PMC model. In this design, the GNN component serves as an initial posterior estimator, and the key step of \tool is the local posterior refinement that uses the probabilistic PMC likelihood.
+
+\subsection{Diagnostic Feature Construction}
+
+To keep the learning component simple, \tool uses node-level diagnostic summaries as input features. The raw multi-round syndrome observations are not treated as additional neural features; they are retained for the posterior refinement step described later.
+
+For each edge $(u,v)$, mutual testing provides two directed outcomes in each round: $S_{u\rightarrow v}^{(t)}$ and $S_{v\rightarrow u}^{(t)}$. We aggregate the bidirectional match and mismatch counts on edge $(u,v)$ as
+\begin{equation*}
+c_{uv}=\sum_{t=1}^{T}\left(\mathbb{I}[S_{u\rightarrow v}^{(t)}=0]+\mathbb{I}[S_{v\rightarrow u}^{(t)}=0]\right),
+\end{equation*}
+\begin{equation*}
+m_{uv}=\sum_{t=1}^{T}\left(\mathbb{I}[S_{u\rightarrow v}^{(t)}=1]+\mathbb{I}[S_{v\rightarrow u}^{(t)}=1]\right),
+\end{equation*}
+where $c_{uv}+m_{uv}=2T$. The bidirectional mismatch ratio is denoted by $r_{uv}=m_{uv}/(2T)$.
+
+\noindent\textbf{Node features.}
+For each node $u$, \tool constructs a three-dimensional node feature vector
+\begin{equation*}
+\mathbf{x}_u=[f_1(u),f_2(u),f_3(u)]^T.
+\end{equation*}
+We intentionally remove node degree from the feature vector because the considered interconnection networks are regular under a fixed topology, making degree non-discriminative for diagnosis.
+
+\noindent\textit{Average match ratio.}
+The first component is the average match ratio:
+\begin{equation*}
+f_1(u)=\frac{\sum_{v\in N(u)}c_{uv}}{2T|N(u)|}.
+\end{equation*}
+This feature captures the extent to which node $u$ agrees with its neighborhood across repeated mutual tests.
+
+\noindent\textit{Average mismatch ratio.}
+The second component is the average mismatch ratio:
+\begin{equation*}
+f_2(u)=\frac{\sum_{v\in N(u)}m_{uv}}{2T|N(u)|}.
+\end{equation*}
+Under the probabilistic PMC model, mismatches provide direct evidence that two adjacent nodes are likely in different states. Therefore, $f_2(u)$ gives a coarse suspicion signal for node $u$ relative to its neighborhood.
+
+\noindent\textit{Mismatch dispersion.}
+The third component is the dispersion of edge-level mismatch ratios:
+\begin{equation*}
+f_3(u)=\sqrt{\frac{1}{|N(u)|}\sum_{v\in N(u)}(r_{uv}-f_2(u))^2}.
+\end{equation*}
+This feature distinguishes different local disagreement patterns that may have the same average mismatch ratio. For example, disagreement concentrated on one incident edge may suggest that the neighbor on that edge is suspicious, whereas disagreement distributed across many incident edges may indicate broader uncertainty around $u$ or a noisier local syndrome pattern.
+
+\subsection{GNN Posterior Estimator}
+
+Given the node features constructed above, \tool uses a standard message-passing GNN to estimate node-wise fault posterior probabilities. The posterior refinement procedure is not tied to a specific GNN backbone; it can be instantiated with common graph encoders such as mean aggregation, GCN, GraphSAGE, or graph attention.
+
+The initial node representation is
+\begin{equation*}
+\mathbf{h}_u^{(0)}=\phi_x(\mathbf{x}_u),
+\end{equation*}
+where $\phi_x(\cdot)$ is an MLP. At layer $\ell$, node $u$ aggregates representations from its graph neighbors:
+\begin{equation*}
+\mathbf{h}_u^{(\ell+1)}=
+\sigma\left(\mathbf{W}_{s}^{(\ell)}\mathbf{h}_u^{(\ell)}
++ \sum_{v\in N(u)} \alpha_{uv}^{(\ell)}
+\mathbf{W}_{n}^{(\ell)}\mathbf{h}_v^{(\ell)}\right),
+\end{equation*}
+where $\alpha_{uv}^{(\ell)}$ denotes the normalized aggregation weight. It can be instantiated as a uniform mean-aggregation weight or as a learned attention weight, depending on the selected backbone.
+
+After $L$ graph layers, the prediction head produces a fault posterior score:
+\begin{equation*}
+l_u=\mathbf{w}_{p}^{T}\mathbf{h}_u^{(L)}+b_p,\quad
+\hat{p}_u=\sigma(l_u).
+\end{equation*}
+Thus, the GNN provides an initial posterior estimate. Instead of directly converting all posterior scores into hard labels, \tool passes $\hat{p}_u$ to the confidence-aware decision and posterior refinement stages described next.
+
+\subsection{Probability-Based Diagnostic Decision}
+
+The posterior score $\hat{p}_u$ is first converted to a preliminary diagnosis through a confidence-aware decision rule. Let $\theta_-$ and $\theta_+$ be two probability thresholds that define the low-confidence interval around the decision boundary, with $\theta_-<\theta_+$. We define
+\begin{align*}
+\mathcal{V}_{0} &= \{u\in V: \hat{p}_u\le \theta_-\},\\
+\mathcal{V}_{1} &= \{u\in V: \hat{p}_u\ge \theta_+\},\\
+\mathcal{V}_{a} &= \{u\in V: \theta_-<\hat{p}_u<\theta_+\},
+\end{align*}
+where $\mathcal{V}_{0}$ and $\mathcal{V}_{1}$ are preliminarily assigned as fault-free and faulty nodes, respectively, and $\mathcal{V}_{a}$ contains nodes near the decision boundary. The concrete threshold values are specified in the experimental setup.
+
+Nodes in $\mathcal{V}_{0}$ and $\mathcal{V}_{1}$ are assigned direct diagnostic labels:
+\begin{equation*}
+\hat{z}_u=
+\begin{cases}
+0, & u\in \mathcal{V}_{0},\\
+1, & u\in \mathcal{V}_{1}.
+\end{cases}
+\end{equation*}
+However, a large posterior score does not always imply a reliable prediction under shifted or noisy PMC observations. The GNN may produce overconfident but incorrect predictions. Therefore, \tool does not select refinement candidates only from $\mathcal{V}_{a}$. For each node, we define the prediction confidence as
+\begin{equation*}
+c_u=\max\{\hat{p}_u,1-\hat{p}_u\}.
+\end{equation*}
+Let $\mathcal{T}_{q}^{0}$ and $\mathcal{T}_{q}^{1}$ denote the least-confident top-$q$ fraction of nodes in $\mathcal{V}_{0}$ and $\mathcal{V}_{1}$ according to $c_u$, respectively. The posterior refinement candidate set is
+\begin{equation*}
+\mathcal{V}_{r}=\mathcal{V}_{a}\cup\mathcal{T}_{q}^{0}\cup\mathcal{T}_{q}^{1}.
+\end{equation*}
+This selection keeps boundary-region ambiguous nodes while also allowing low-confidence predictions within each preliminary class to be checked against local syndrome evidence.
+
+\subsection{Posterior Refinement via Local Syndrome Consistency}
+\label{subsec:posterior_calibration}
+
+For a refinement candidate $u\in\mathcal{V}_{r}$, the GNN posterior alone may be insufficient for a reliable decision. Instead of calibrating all nodes globally, \tool refines selected predictions by checking whether each candidate state of $u$ is consistent with the observed mutual-test syndromes around reliable neighboring nodes.
+
+Let
+\begin{equation*}
+\mathcal{H}_u=N(u)\cap((\mathcal{V}_{0}\cup\mathcal{V}_{1})\setminus\mathcal{V}_{r})
+\end{equation*}
+be the set of reference neighbors of $u$. Nodes selected for refinement are excluded from this reference set because their preliminary labels require further checking. For each $v\in\mathcal{H}_u$, its provisional label is fixed as $\hat{z}_v=0$ if $v\in\mathcal{V}_{0}$ and $\hat{z}_v=1$ if $v\in\mathcal{V}_{1}$.
+
+\tool then evaluates two hypotheses for node $u$: $z_u=1$ and $z_u=0$. Under a candidate state $h\in\{0,1\}$, the local syndrome likelihood is
+\begin{equation*}
+\mathcal{L}_u(h)=
+\prod_{v\in\mathcal{H}_u}\prod_{t=1}^{T}
+P(S_{u\rightarrow v}^{(t)}\mid h,\hat{z}_v)
+P(S_{v\rightarrow u}^{(t)}\mid \hat{z}_v,h),
+\end{equation*}
+where the conditional probabilities follow the probabilistic PMC model. This likelihood measures how well the collected bidirectional syndrome on edges incident to high-confidence neighbors agrees with the assumed state of $u$.
+
+The refined posterior combines the GNN score with this local consistency evidence:
+\begin{equation*}
+\tilde{p}_u=
+\frac{\hat{p}_u\mathcal{L}_u(1)}
+{\hat{p}_u\mathcal{L}_u(1)+(1-\hat{p}_u)\mathcal{L}_u(0)}.
+\end{equation*}
+If the observed mutual-test outcomes are much more consistent with the faulty hypothesis, $\tilde{p}_u$ increases; if they are more consistent with the fault-free hypothesis, $\tilde{p}_u$ decreases. When $\mathcal{H}_u$ is empty or the two hypotheses produce similar likelihoods, the node remains uncertain and the refined posterior stays close to the original GNN score.
+
+For refinement candidates, the final diagnosis is determined by the refined posterior and a decision threshold $\theta_c$:
+\begin{equation*}
+\hat{z}_u=\mathbb{I}[\tilde{p}_u\ge \theta_c],\quad u\in\mathcal{V}_{r}.
+\end{equation*}
+For nodes not selected into $\mathcal{V}_{r}$, the preliminary labels from the previous decision stage are retained.
+
+\noindent\textbf{Example.}
+Consider node $u=000$ in a three-dimensional hypercube $Q_3$, whose neighbors are $001$, $010$, and $100$. Suppose $u$ is selected into $\mathcal{V}_{r}$ because its posterior is near the decision boundary or because it is among the least-confident nodes in its preliminary class. Suppose further that $001$ and $100$ are reliable fault-free reference nodes, while $010$ is also selected for refinement. The refinement step uses only $\mathcal{H}_u=\{001,100\}$ and ignores $010$.
+
+Assume first that $T=5$ bidirectional tests are observed as
+\begin{equation*}
+\begin{aligned}
+\mathbf{s}_{u,001}&=1111111100,\\
+\mathbf{s}_{u,100}&=1111101111,
+\end{aligned}
+\end{equation*}
+where each sequence concatenates the outcomes from $u$ to the neighbor and from the neighbor to $u$. Both edges contain mostly mismatches. Since $001$ and $100$ are treated as fault-free references, these observations are more consistent with the hypothesis $z_u=1$ than with $z_u=0$. Therefore, $\mathcal{L}_u(1)>\mathcal{L}_u(0)$ and the refined posterior $\tilde{p}_u$ moves toward the faulty class. Conversely, if the two sequences were mostly matches, the same calculation would make $\mathcal{L}_u(0)$ larger and move $\tilde{p}_u$ toward the fault-free class. Thus, ambiguous nodes are not decided only by their GNN score, but by whether their candidate states are consistent with reliable neighboring syndromes.

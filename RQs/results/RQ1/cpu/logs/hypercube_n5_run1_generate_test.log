@@ -1,0 +1,4 @@
+saved 60 samples to /Users/shuangxiangkan/Documents/Sherry/Papers/TDSC/GAT_PFD_Experiment/RQs/results/RQ1/cpu/data/hypercube_n5_run1_test
+topology=Q_5, nodes=32, edges=80
+gamma: min=0.7002, max=0.9987
+beta: min=0.0043, max=0.2908

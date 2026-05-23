@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 from pathlib import Path
 import random
 import sys
@@ -21,7 +22,7 @@ from pfd.metrics import (
     topk_localization,
 )
 from pfd.features import build_features
-from pfd.model import ReliabilityAwareGNN, make_bidirectional_edges
+from pfd.model import GNNPosteriorEstimator, make_bidirectional_edges
 
 
 def choose_device(preferred: str = "auto") -> torch.device:
@@ -46,6 +47,10 @@ def split_samples(samples, train_ratio: float, seed: int):
 
 def sample_to_tensors(sample, device: torch.device):
     x, edge_attr, _ = build_features(sample)
+    if getattr(sample_to_tensors, "drop_feature", None) is not None:
+        feature_names = ["match", "mismatch", "dispersion"]
+        keep = [i for i, name in enumerate(feature_names) if name != sample_to_tensors.drop_feature]
+        x = x[:, keep]
     edge_index, edge_attr_bi = make_bidirectional_edges(sample.edges, edge_attr)
     return (
         torch.as_tensor(x, dtype=torch.float32, device=device),
@@ -55,14 +60,54 @@ def sample_to_tensors(sample, device: torch.device):
     )
 
 
-def train_model(args, train_samples, device: torch.device):
-    x0, _, edge_attr0, _ = sample_to_tensors(train_samples[0], device)
-    model = ReliabilityAwareGNN(
+def append_curve_row(args, epoch: int, train_loss: float, metrics: dict[str, float]) -> None:
+    if args.curve_output is None:
+        return
+    args.curve_output.parent.mkdir(parents=True, exist_ok=True)
+    row = {
+        "epoch": epoch,
+        "train_loss": train_loss,
+        "backbone": args.backbone,
+        "drop_feature": args.drop_feature or "full",
+        "dataset": args.dataset.name,
+        "test_dataset": args.test_dataset.name if args.test_dataset is not None else "",
+    }
+    for key in (
+        "raw_accuracy",
+        "raw_precision",
+        "raw_recall",
+        "raw_f1",
+        "raw_brier",
+        "raw_ece",
+        "raw_topk",
+        "refined_accuracy",
+        "refined_precision",
+        "refined_recall",
+        "refined_f1",
+        "refined_brier",
+        "refined_ece",
+        "refined_topk",
+        "refinement_change_rate",
+        "refinement_corrected_rate",
+        "refinement_wrong_flip_rate",
+    ):
+        row[key] = metrics.get(key, "")
+    write_header = not args.curve_output.exists()
+    with args.curve_output.open("a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=list(row.keys()))
+        if write_header:
+            writer.writeheader()
+        writer.writerow(row)
+
+
+def train_model(args, train_samples, test_samples, device: torch.device):
+    x0, _, _, _ = sample_to_tensors(train_samples[0], device)
+    model = GNNPosteriorEstimator(
         node_dim=x0.shape[1],
-        edge_dim=edge_attr0.shape[1],
         hidden_dim=args.hidden_dim,
         num_layers=args.layers,
         dropout=args.dropout,
+        backbone=args.backbone,
     ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     loss_fn = nn.BCEWithLogitsLoss()
@@ -84,6 +129,12 @@ def train_model(args, train_samples, device: torch.device):
             losses.append(float(loss.detach().cpu()))
         if epoch == 1 or epoch % args.log_every == 0 or epoch == args.epochs:
             print(f"epoch {epoch:04d} loss={np.mean(losses):.4f}")
+        if args.curve_output is not None and (
+            epoch == 1 or epoch % args.eval_every == 0 or epoch == args.epochs
+        ):
+            metrics = evaluate_model(model, test_samples, device, args)
+            append_curve_row(args, epoch, float(np.mean(losses)), metrics)
+            model.train()
     return model
 
 
@@ -98,7 +149,7 @@ def evaluate_model(model, samples, device: torch.device, args):
     wrong_flip_rates = []
     for sample in samples:
         x, edge_index, edge_attr, _ = sample_to_tensors(sample, device)
-        logits, aux = model(x, edge_index, edge_attr)
+        logits, _ = model(x, edge_index, edge_attr)
         probs = torch.sigmoid(logits).detach().cpu().numpy().astype(np.float32)
         _, _, va, raw_pred = partition_predictions(probs, args.theta_low, args.theta_high)
         raw_pred[va] = (probs[va] >= args.theta_c).astype(np.int8)
@@ -121,7 +172,6 @@ def evaluate_model(model, samples, device: torch.device, args):
         row["brier"] = brier_score(sample.labels, refined)
         row["ece"] = expected_calibration_error(sample.labels, refined)
         row["topk"] = topk_localization(sample.labels, refined)
-        row["avg_rho"] = float(aux["rho"].detach().cpu().mean())
         row["ambiguous_ratio"] = float(np.mean(va))
         row["refinement_candidate_ratio"] = float(np.mean(candidates))
         refined_rows.append(row)
@@ -169,6 +219,13 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--hidden-dim", type=int, default=64)
     parser.add_argument("--layers", type=int, default=2)
+    parser.add_argument("--backbone", choices=["gcn", "graphsage", "gat"], default="graphsage")
+    parser.add_argument(
+        "--drop-feature",
+        choices=["match", "mismatch", "dispersion"],
+        default=None,
+        help="Remove one node feature for feature ablation.",
+    )
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
@@ -178,12 +235,15 @@ def main() -> None:
     parser.add_argument("--theta-c", type=float, default=0.5)
     parser.add_argument("--refine-top-pct", type=float, default=0.1)
     parser.add_argument("--log-every", type=int, default=20)
+    parser.add_argument("--eval-every", type=int, default=1)
+    parser.add_argument("--curve-output", type=Path, default=None)
     parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     args = parser.parse_args()
 
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
+    sample_to_tensors.drop_feature = args.drop_feature
     device = choose_device(args.device)
     print(f"device: {device}")
 
@@ -194,7 +254,7 @@ def main() -> None:
         train_samples = samples
         test_samples = load_dataset(args.test_dataset)
     print(f"samples: train={len(train_samples)} test={len(test_samples)}")
-    model = train_model(args, train_samples, device)
+    model = train_model(args, train_samples, test_samples, device)
     metrics = evaluate_model(model, test_samples, device, args)
     print("test metrics:")
     for key, value in metrics.items():

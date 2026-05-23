@@ -1,0 +1,138 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx,amssymb,amsmath}
+\usepackage{fullpage,times}
+\usepackage{listings}
+\usepackage{amsmath,mathrsfs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xspace}
+\usepackage{url}
+\usepackage{color}
+\usepackage{hyperref}
+
+\usepackage{times}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{xspace}
+% \usepackage[margin=32mm,nohead,nofoot]{geometry}
+\usepackage[margin=20mm,nohead]{geometry}
+
+\usepackage{framed}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{url}
+\usepackage{soul}
+\usepackage{dsfont}
+\usepackage{amsmath}
+\usepackage{mathrsfs}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage[authoryear]{natbib}
+\usepackage{response-rebuttal}
+\usepackage{xspace}
+
+\newenvironment{pf}[1][Proof]{\noindent\textbf{#1.} }{\hfill\rule{1mm}{2mm}}
+
+\newcommand*{\tool}{{\textsc{Spectre}}\xspace}
+
+\newcommand{\code}[1]{{\fontfamily{cmtt}\fontseries{m}\fontshape{n}\selectfont\small{#1}}}
+
+\newenvironment{shadequote}
+{\begin{snugshade}\begin{quote}}
+{\hfill\end{quote}\end{snugshade}}
+\definecolor{shadecolor}{rgb}{0.9,0.9,0.9}
+
+\lstset{breaklines=true,basicstyle=\itshape\footnotesize}
+
+\begin{document}
+
+
+\begin{center}
+\text{\Large{Revision Response Letter}}
+\end{center}
+
+
+\bigskip
+
+We would like to thank the Editor and Reviewer 3 for their valuable comments and constructive suggestions, which have been carefully taken into account when producing this revised version. 
+Note that our changes and new materials are marked in \textcolor{blue}{blue} in this revised version. 
+% Minor editorial changes are not highlighted for conciseness.
+In this response letter, we will address the required changes summarized by the Editor and then respond to each comment raised by Reviewer 3 in detail.
+
+
+\bigskip
+
+\noindent
+\textbf{\Large Required changes summarized by Editor}
+
+\begin{shaded}
+    \noindent \textbf{Comments to the Author}\\
+The paper is generally recognized as making an innovative contribution within its field. Some minor issues related to writing style remain and should be addressed in a final minor revision round. Please see the comments of the third reviewer and take this opportunity to revise the overall writing style for improved clarity and fluency.   
+\end{shaded}
+\noindent \textbf{Response:}
+Thank you for your positive feedback and helpful suggestions.
+\begin{itemize}
+\item We have clarified in Section I, Paragraph 3 (Page 1, right, line -2 to Page 2, left, line 7) that the theoretical proof of our work differs from that of Reference 10, and the distinction is now explicitly discussed.
+\item We have carefully revised the manuscript to improve the overall writing style and have corrected all grammatical and expression issues for better clarity and fluency.
+\end{itemize}
+\hfill  $\blacksquare$
+
+
+\bigskip
+\pagebreak
+
+
+\bigskip
+
+\pagebreak
+
+\noindent
+\textbf{\Large Comments from Reviewer 3}
+
+\begin{shaded}
+    \noindent \textbf{Comment $3.1$}\\
+I note that Reference 10 studied the $h$-extra $r$-component connectivity of 3-ary $n$-cube. Is the theoretical proof of this work similar to that of Reference 10?
+\end{shaded}
+\noindent \textbf{Response:} 
+Thank you for the question. Reference 10 investigates the $h$-extra $r$-component connectivity of 3-ary $n$-cubes for $h=0,1$ and $r=3$. In contrast, our work focuses on augmented $k$-ary $n$-cubes ($AQ_{n,k}$) for general $r$, which feature a more complex dual-edge structure and richer connectivity than 3-ary $n$-cubes.
+While we have carefully examined the proof techniques in Reference 10, their methods are tailored to the specific structural properties of 3-ary $n$-cubes and cannot be directly extended to augmented $k$-ary $n$-cubes. In our paper, we present new lemmas and arguments to handle the $h$-extra $r$-component connectivity of $AQ_{n,k}$. Therefore, although the overall proof framework shares some conceptual similarity, the detailed reasoning and techniques in our work are substantially different.
+
+We have clarified this distinction in the revised manuscript (Pages 1-2 in Section I), highlighting that prior proofs are topology-specific and cannot be directly generalized to augmented $k$-ary $n$-cubes.
+\hfill  $\blacksquare$
+
+\begin{shaded}
+    \noindent \textbf{Comment $3.2$}\\
+2. The Grammatical mistakes need to be further improved.\\
+1) Page 1, right, lines 45 and 47: ``to'' should be deleted.\\
+2) Page 2, left, line 12: ``more'' should be deleted.\\
+3) Page 2, right, line 31:  ``the robustness of a networks fault tolerance'' is confusing and unclear.\\
+4) Page 3, right, line 11: ``adjacent to some nodes in S'' $\rightarrow$ ``adjacent to nodes of S''.\\
+5) Page 3, right, line 24: ``no edges'' should be ``no edge''.\\
+6) Page 3, right, line 35: ``F'' is inconsistent.\\
+7) Page 5, left, line 5: ``$AQ_{n, k} - F$ is an $r$-component cut'' is not correct.\\
+8) Page 5, left, line 6: ``it'' $\rightarrow$ ``$AQ_{n, k} - F$''.\\
+9) Page 5, left, line 14: the expression ``as the network scale'' is not accurate.\\
+10) Page 5, left, line 15: ``more'' should be deleted.\\
+11) Page 6, left, lines 44 and 49: ``no isolated nodes''  $\rightarrow$ ``no isolated node''.\\
+12) Page 6, left, line 49: $AQ_{n, k} - F - \{x_1, y_1, x_2, y_2\}$" $\rightarrow$ ``$AQ_{n, k} - F - \{x_1, y_1, x_2, y_2\}$''.\\
+13) Page 6, left, line 57: the expression ``$i \in I_k = \{0, k - 1\}$'' is not accurate. Maybe it should be corrected to ``$i \in I_k$ and $I_k = \{0, k - 1\}$''\\
+14) Page 6, right, line 3: ``we can proceed to prove in two distinct cases'' should be ``we proceed to prove two cases as below''.\\
+15) Page 6, right, line 15: ``$i = \{0, 1, 2, 3\}$'' is not accurate.\\
+16) Page 7, left, line 51: ``additional'' should be deleted.\\
+17) Page 7, left, lines 52 and 55: ``$N(x_m, y_m)$'' should be ``$N(\{x_m, y_m\}$''.\\
+18) Page 8, left, line 27: ``the algorithm 1'' should be ``Algorithm 1''.\\
+19) Page 8, left, line 46: ``$o(|E|.\alpha(|V|)$'' should be ``$o(|E|.\alpha|V|))$''.\\
+I hope the authors carefully check other issues of this manuscript. Thanks.
+
+\end{shaded}
+\noindent \textbf{Response:} 
+We sincerely thank the reviewer for the careful proofreading and valuable suggestions. All the grammatical and expression issues listed have been carefully checked and corrected in the revised manuscript.
+\hfill  $\blacksquare$
+
+
+
+% \bibliographystyle{unsrt}
+% \bibliography{TC-minor-revision-ref}
+
+\end{document}

@@ -1,0 +1,38 @@
+\section{Preliminaries}\label{preliminaries}
+
+% \subsection{Interconnection Networks}
+An interconnection network is modeled as an undirected graph $G=(V,E)$, where each node $u\in V$ represents a processor or server and each edge $(u,v)\in E$ represents a communication or testing relation. Each node has an unknown binary state $z_u\in\{0,1\}$, where $z_u=0$ denotes a fault-free node and $z_u=1$ denotes a faulty node. The true fault set is $F=\{u\in V\mid z_u=1\}$. Standard graph-theoretic notation follows~\cite{bondy1976graph}.
+
+\subsection{Probabilistic PMC Model}
+In the probabilistic PMC model, adjacent nodes test each other and produce diagnostic outcomes. For an undirected edge $(u,v)\in E$, we use $S_{u\rightarrow v}\in\{0,1\}$ to denote the outcome when node $u$ tests node $v$, where $S_{u\rightarrow v}=0$ indicates a match and $S_{u\rightarrow v}=1$ indicates a mismatch. Mutual testing on edge $(u,v)$ therefore produces two directed outcomes, $S_{u\rightarrow v}$ and $S_{v\rightarrow u}$. The conditional distribution of a directed outcome depends on the states of the two endpoints:
+\begin{equation}
+P(S_{u\rightarrow v}=s\mid z_u,z_v)=
+\begin{cases}
+1, & s=0, z_u=0,z_v=0,\\
+\gamma, & s=1, z_u\ne z_v,\\
+1-\gamma, & s=0, z_u\ne z_v,\\
+\beta, & s=0, z_u=1,z_v=1,\\
+1-\beta, & s=1, z_u=1,z_v=1.
+\end{cases}
+\label{eq:prob_pmc}
+\end{equation}
+Here $\gamma$ is the probability that a test involving one faulty and one fault-free node yields a mismatch, and $\beta$ is the probability that two faulty nodes yield a match. Typically, $\gamma$ is close to $1$ and $\beta$ is close to $0$, but in practice these parameters may be unknown or may vary across systems and operating conditions.
+
+Because a single probabilistic test can be unreliable, we consider $T$ repeated observations in each direction of an edge:
+\begin{equation*}
+\mathbb{S}_{u\rightarrow v}=\{S_{u\rightarrow v}^{(1)},S_{u\rightarrow v}^{(2)},\ldots,S_{u\rightarrow v}^{(T)}\}.
+\end{equation*}
+The complete multi-round syndrome is $\mathbb{S}=\{\mathbb{S}_{u\rightarrow v},\mathbb{S}_{v\rightarrow u}\mid (u,v)\in E\}$.
+
+\subsection{Posterior Diagnosis Objective}
+Classical probabilistic diagnosis seeks a fault set that maximizes the likelihood of the observed syndrome:
+\begin{equation*}
+\hat{F}=\arg\max_{F'\subseteq V} P(\mathbb{S}\mid F').
+\end{equation*}
+This objective is difficult to solve exactly for large networks because the search space grows exponentially with $|V|$. Moreover, a single estimated set $\hat{F}$ does not convey diagnostic confidence.
+
+We therefore formulate diagnosis as node-wise posterior inference:
+\begin{equation*}
+p_u=P(z_u=1\mid \mathbb{S},G), \quad u\in V.
+\end{equation*}
+The output $p_u$ is used both for binary diagnosis and for ranking suspicious processors. A well-calibrated posterior should satisfy the following intuition: among nodes assigned probability close to $0.8$, approximately $80\%$ should be faulty. This property is important for maintenance decisions because it allows operators to distinguish highly reliable alarms from ambiguous cases that require additional testing.

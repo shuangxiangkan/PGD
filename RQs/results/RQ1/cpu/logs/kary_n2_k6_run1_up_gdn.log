@@ -1,0 +1,38 @@
+device: cpu
+samples: train=120 test=60
+epoch 0001 loss=0.1641
+epoch 0020 loss=0.0044
+epoch 0040 loss=0.0055
+epoch 0060 loss=0.0050
+epoch 0080 loss=0.0052
+test metrics:
+raw_accuracy: 0.9977
+raw_precision: 1.0000
+raw_recall: 0.9924
+raw_f1: 0.9960
+raw_brier: 0.0020
+raw_ece: 0.0034
+raw_topk: 0.9970
+refined_accuracy: 0.9981
+refined_precision: 1.0000
+refined_recall: 0.9939
+refined_f1: 0.9968
+refined_brier: 0.0018
+refined_ece: 0.0021
+refined_topk: 0.9985
+refined_ambiguous_ratio: 0.0000
+refined_refinement_candidate_ratio: 0.1366
+delta_accuracy: 0.0005
+delta_precision: 0.0000
+delta_recall: 0.0015
+delta_f1: 0.0008
+delta_brier: -0.0002
+delta_ece: -0.0013
+delta_topk: 0.0015
+candidate_accuracy: 0.9833
+candidate_precision: 1.0000
+candidate_recall: 0.9667
+candidate_f1: 0.9778
+refinement_change_rate: 0.0042
+refinement_corrected_rate: 0.0167
+refinement_wrong_flip_rate: 0.0000

@@ -1,0 +1,186 @@
+\section{Experiment}
+\label{sec:simulation}
+
+This section evaluates the proposed \tool framework under the probabilistic PMC setting. The evaluation is organized around three research questions:
+\begin{itemize}[leftmargin=*, itemsep=1pt, parsep=0pt, topsep=1pt]
+    \item \textbf{RQ1:} How effective is \tool compared with existing diagnosis methods?
+    \item \textbf{RQ2:} How does \tool perform under different fault rates?
+    \item \textbf{RQ3:} How do diagnostic features, posterior refinement, and GNN backbones affect \tool?
+\end{itemize}
+
+\subsection{Experimental Setup}
+
+\noindent \textbf{Network topologies.}
+We evaluate all methods on three representative interconnection topologies. The first topology is the hypercube $Q_n$, where each node is represented by an $n$-bit binary string and adjacent nodes differ in exactly one bit. The second topology is the $k$-ary $n$-cube $Q_k^n$, where each node is represented by an $n$-tuple over $\{0,1,\ldots,k-1\}$ and two nodes are adjacent if they differ by one modulo $k$ in exactly one dimension. The third topology is the augmented $k$-ary $n$-cube $AQ_{n,k}$, which extends $Q_k^n$ with additional augmented edges to provide higher connectivity. These three topologies cover different degrees, local connectivity patterns, and diagnostic evidence densities.
+
+\noindent \textbf{Fault and syndrome generation.}
+For each topology, faulty nodes are sampled according to a specified fault rate. Given the fault state of each node, directed test outcomes are generated according to the probabilistic PMC model. Each adjacent pair is tested in both directions, and each directed test is repeated for $T$ rounds unless otherwise specified. The proposed method uses the multi-round syndrome observations, while the rule-based baseline is evaluated using the last collected syndrome.
+
+\noindent \textbf{Baselines.}
+To the best of our knowledge, \tool is the first neural-network-based method for system-level probabilistic PMC diagnosis model. Therefore, we compare it with a representative traditional method, Clustered-PMC, the probabilistic clustered-fault diagnosis algorithm based on local factions and threshold $k=3$~\cite{sun2023probabilistic}. Since Clustered-PMC takes a single PMC syndrome as input, we apply it to the last collected syndrome in each test instance. Clustered-PMC is directly evaluated on the validation or test instances without training.
+
+\noindent \textbf{Metrics.}
+For binary diagnosis, we report accuracy, precision, recall, and F1-score. Since \tool produces posterior fault probabilities, we also report Brier score and expected calibration error (ECE) to evaluate probability quality. Lower Brier score and lower ECE indicate better calibrated posterior estimates.
+
+\noindent \textbf{Implementation details.}
+Unless otherwise stated, the GNN posterior estimator is instantiated with GraphSAGE in RQ1 and RQ2; RQ3 further compares GCN, GraphSAGE, and GAT backbones. The default decision threshold for calibrated posterior diagnosis is $\theta_c=0.5$. The least-confident top-$q$ fraction in each preliminary class is selected for posterior refinement, with $q=10\%$ by default. The concrete values of $T$, fault rates, graph sizes, training epochs, hidden dimensions, and optimization settings are reported together with the corresponding experiments.
+
+\subsection{RQ1: Overall Diagnostic Effectiveness}
+\label{subsec:rq1}
+
+RQ1 evaluates whether \tool can accurately diagnose faulty processors under the probabilistic PMC model. We compare \tool with Clustered-PMC on the three topologies described above. In the CPU-scale setting, we evaluate three small instances from each topology family. The fault rate is fixed to $30\%$, and each result is averaged over three independent runs.
+
+\begin{table}[h]
+\centering
+\caption{RQ1 diagnostic performance in the CPU-scale setting.}
+\label{tab:rq1_effectiveness}
+\resizebox{0.48\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\textbf{Topology} & \textbf{Method} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{Brier} \\
+\hline
+$Q_4$ & Clustered-PMC & 0.8590 & 0.9189 & 0.5567 & 0.6587 & 0.1410 \\
+$Q_4$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+\hline
+$Q_5$ & Clustered-PMC & 0.8545 & 0.9819 & 0.5350 & 0.6555 & 0.1455 \\
+$Q_5$ & \tool & 0.9997 & 0.9995 & 0.9994 & 0.9994 & 0.0002 \\
+\hline
+$Q_6$ & Clustered-PMC & 0.8538 & 0.9997 & 0.5076 & 0.6320 & 0.1462 \\
+$Q_6$ & \tool & 0.9998 & 1.0000 & 0.9994 & 0.9997 & 0.0001 \\
+\hline
+$Q_4^2$ & Clustered-PMC & 0.8827 & 0.9736 & 0.6278 & 0.7263 & 0.1173 \\
+$Q_4^2$ & \tool & 0.9997 & 1.0000 & 0.9989 & 0.9994 & 0.0003 \\
+\hline
+$Q_6^2$ & Clustered-PMC & 0.8799 & 0.9709 & 0.6202 & 0.7302 & 0.1201 \\
+$Q_6^2$ & \tool & 0.9981 & 0.9986 & 0.9955 & 0.9969 & 0.0016 \\
+\hline
+$Q_4^3$ & Clustered-PMC & 0.8467 & 0.9981 & 0.4848 & 0.6140 & 0.1533 \\
+$Q_4^3$ & \tool & 0.9997 & 0.9994 & 0.9997 & 0.9995 & 0.0003 \\
+\hline
+$AQ_{2,4}$ & Clustered-PMC & 0.8385 & 0.8722 & 0.4833 & 0.5900 & 0.1615 \\
+$AQ_{2,4}$ & \tool & 0.9997 & 0.9991 & 1.0000 & 0.9995 & 0.0003 \\
+\hline
+$AQ_{2,6}$ & Clustered-PMC & 0.8556 & 0.9884 & 0.5278 & 0.6457 & 0.1444 \\
+$AQ_{2,6}$ & \tool & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+\hline
+$AQ_{3,4}$ & Clustered-PMC & 0.7882 & 0.9389 & 0.2865 & 0.3971 & 0.2118 \\
+$AQ_{3,4}$ & \tool & 0.9999 & 0.9997 & 1.0000 & 0.9999 & 0.0001 \\
+\hline
+\end{tabular}%
+}
+\vspace{1mm}
+\end{table}
+
+Table~\ref{tab:rq1_effectiveness} shows that \tool consistently improves recall and F1-score over Clustered-PMC while maintaining high precision. This is important because missed faulty processors may continue to affect system reliability.
+
+\subsection{RQ2: Performance Under Different Fault Rates}
+\label{subsec:rq2_fault_rate}
+
+RQ2 evaluates the robustness of \tool as the number of faulty processors increases. We vary the fault rate and compare \tool with Clustered-PMC under the same syndrome generation setting. This experiment is designed to test whether the posterior-based diagnosis remains effective when local neighborhoods contain more faulty nodes and the observed syndromes become more ambiguous.
+
+\begin{table}[h]
+\centering
+\caption{Diagnostic performance under different fault rates.}
+\label{tab:rq2_fault_rate}
+\resizebox{0.48\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\textbf{Fault Rate} & \textbf{Method} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} \\
+\hline
+10\% & Clustered-PMC & -- & -- & -- & -- & -- \\
+10\% & \tool & -- & -- & -- & -- & -- \\
+\hline
+20\% & Clustered-PMC & -- & -- & -- & -- & -- \\
+20\% & \tool & -- & -- & -- & -- & -- \\
+\hline
+30\% & Clustered-PMC & -- & -- & -- & -- & -- \\
+30\% & \tool & -- & -- & -- & -- & -- \\
+\hline
+40\% & Clustered-PMC & -- & -- & -- & -- & -- \\
+40\% & \tool & -- & -- & -- & -- & -- \\
+\hline
+50\% & Clustered-PMC & -- & -- & -- & -- & -- \\
+50\% & \tool & -- & -- & -- & -- & -- \\
+\hline
+\end{tabular}%
+}
+\vspace{1mm}
+\end{table}
+
+Table~\ref{tab:rq2_fault_rate} will show how the diagnosis quality changes as the fault rate increases. The key question is whether \tool degrades more gracefully than the traditional rule-based baseline, especially in recall, F1-score, and calibration.
+
+\subsection{RQ3: Ablation Study}
+\label{subsec:rq3_ablation}
+
+RQ3 studies three design questions in \tool. First, we evaluate the contribution of each node feature. Second, we measure the contribution of local syndrome-consistency posterior refinement. Third, we compare different GNN backbones to check whether the framework is tied to a specific graph encoder.
+
+\noindent\textbf{Feature study.}
+We first study the node feature design by removing one feature at a time while keeping the GNN backbone and posterior refinement unchanged:
+\begin{itemize}[leftmargin=*, itemsep=1pt, parsep=0pt, topsep=1pt]
+    \item \textbf{w/o match ratio}: removes the average match ratio from the node features.
+    \item \textbf{w/o mismatch ratio}: removes the average mismatch ratio from the node features.
+    \item \textbf{w/o dispersion}: removes mismatch dispersion from the node features.
+    \item \textbf{full \tool}: uses all diagnostic node features and posterior refinement.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Node feature ablation.}
+\label{tab:rq3_feature}
+\resizebox{0.48\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Variant} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} \\
+\hline
+w/o match ratio & -- & -- & -- & -- & -- \\
+w/o mismatch ratio & -- & -- & -- & -- & -- \\
+w/o dispersion & -- & -- & -- & -- & -- \\
+full \tool & -- & -- & -- & -- & -- \\
+\hline
+\end{tabular}%
+}
+\vspace{1mm}
+\end{table}
+
+\noindent\textbf{Posterior refinement study.}
+We then isolate the effect of the local syndrome-consistency posterior refinement. The variant without posterior refinement directly thresholds the GNN posterior scores, while the full model applies the refinement step to selected low-confidence predictions.
+
+\begin{table}[h]
+\centering
+\caption{Effect of posterior refinement.}
+\label{tab:rq3_refinement}
+\resizebox{0.48\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Variant} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} \\
+\hline
+w/o posterior refinement & -- & -- & -- & -- & -- \\
+full \tool & -- & -- & -- & -- & -- \\
+\hline
+\end{tabular}%
+}
+\vspace{1mm}
+\end{table}
+
+\noindent\textbf{Backbone comparison.}
+We further instantiate the GNN posterior estimator with different graph encoders while keeping the same diagnostic features and posterior refinement procedure. The reported results are averaged over the three representative topologies.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of different GNN backbones.}
+\label{tab:rq3_backbone}
+\resizebox{0.48\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Backbone} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ECE} \\
+\hline
+GCN & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+GraphSAGE & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+GAT & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.0000 \\
+\hline
+\end{tabular}%
+}
+\vspace{1mm}
+\end{table}
+
+Tables~\ref{tab:rq3_feature}, \ref{tab:rq3_refinement}, and~\ref{tab:rq3_backbone} quantify the contribution of each node feature, the effect of posterior refinement, and the sensitivity to the GNN backbone. Since the three backbones achieve comparable diagnostic performance in our setting, we use GraphSAGE as the default backbone in RQ1 and RQ2 because it is simple and stable.

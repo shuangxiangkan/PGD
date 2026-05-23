@@ -8,8 +8,8 @@ This folder contains the experiment code for the probabilistic PMC fault diagnos
 pfd/
   topologies.py      # hypercube, k-ary n-cube, augmented k-ary n-cube
   dataset.py         # probabilistic PMC data generation and .npz IO
-  features.py        # node features and bidirectional edge features
-  model.py           # reliability-aware GNN
+  features.py        # compact node features and edge syndrome summaries
+  model.py           # GNN posterior estimators
   decision.py        # probability decision and posterior refinement
   metrics.py         # accuracy, F1, Brier, ECE, top-k
   baselines.py       # simple reusable baselines
@@ -52,15 +52,22 @@ The default number of testing rounds is 3. Use 2 or 3 rounds for the main low-co
 .venv/bin/python scripts/generate_dataset.py \
   --topology hypercube --n 6 \
   --fault-rate 0.3 --rounds 3 \
-  --gamma 0.7 --beta 0.3 \
   --num-samples 120 \
   --seed 61 \
   --output data/q6_fr30_t3_noisy_method
 ```
 
+Unless fixed with `--gamma` or `--beta`, every generated sample uses
+parameter-randomized PMC reliability:
+
+```text
+gamma ~ U(0.8, 1.0)
+beta  ~ U(0.0, 0.2)
+```
+
 ## Run the Proposed Method
 
-This runs the full method described in the methodology section: feature construction, reliability-aware GNN, probability-based decision, and ambiguous-node posterior refinement.
+This runs the full method described in the methodology section: compact feature construction, GNN posterior estimation, probability-based decision, and ambiguous-node posterior refinement.
 
 ```bash
 .venv/bin/python scripts/run_method.py \
@@ -100,7 +107,6 @@ To test probabilistic PMC parameter shift, generate separate train and test data
 .venv/bin/python scripts/generate_dataset.py \
   --topology hypercube --n 6 \
   --fault-rate 0.3 --rounds 2 \
-  --gamma 0.9 --beta 0.1 \
   --num-samples 120 \
   --seed 71 \
   --output data/q6_fr30_t2_train_reliable
@@ -108,7 +114,8 @@ To test probabilistic PMC parameter shift, generate separate train and test data
 .venv/bin/python scripts/generate_dataset.py \
   --topology hypercube --n 6 \
   --fault-rate 0.3 --rounds 2 \
-  --gamma 0.55 --beta 0.45 \
+  --gamma-min 0.7 --gamma-max 0.8 \
+  --beta-min 0.2 --beta-max 0.3 \
   --num-samples 60 \
   --seed 81 \
   --output data/q6_fr30_t2_test_shifted

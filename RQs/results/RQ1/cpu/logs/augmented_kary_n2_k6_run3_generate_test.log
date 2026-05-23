@@ -1,0 +1,4 @@
+saved 60 samples to /Users/shuangxiangkan/Documents/Sherry/Papers/TDSC/GAT_PFD_Experiment/RQs/results/RQ1/cpu/data/augmented_kary_n2_k6_run3_test
+topology=AQ_2,6, nodes=36, edges=108
+gamma: min=0.7252, max=0.9990
+beta: min=0.0089, max=0.2982

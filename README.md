@@ -16,12 +16,12 @@ The pipeline has four stages:
 
    Multi-round PMC test outcomes are converted into two complementary representations:
 
-   - node-level statistical features, including degree, match ratio, mismatch ratio, and neighborhood disagreement dispersion;
-   - edge-level syndrome features, preserving the raw mutual-test sequence and mismatch ratio on each edge.
+   - node-level statistical features, including average mismatch ratio and neighborhood disagreement dispersion;
+   - edge-level syndrome observations, preserved for posterior refinement.
 
-2. **Reliability-aware graph inference**
+2. **GNN posterior estimation**
 
-   A GNN propagates diagnostic evidence over the network. Edge-level syndrome features are used to estimate how reliable each local test relation is, so noisy edges contribute less to message passing.
+   A standard GNN propagates the compact node features over the network and estimates a fault posterior score for each node. The default backbone is GraphSAGE, with GCN and GAT available for architecture comparison.
 
 3. **Probability-based diagnostic decision**
 
@@ -44,8 +44,8 @@ The repository currently includes:
 pfd/
   topologies.py      # hypercube, k-ary n-cube, augmented k-ary n-cube
   dataset.py         # probabilistic PMC data generation and .npz IO
-  features.py        # node features and edge syndrome features
-  model.py           # reliability-aware GNN and vanilla GNN baseline
+  features.py        # compact node features and edge syndrome summaries
+  model.py           # GNN posterior estimators and baselines
   decision.py        # probability decision and posterior refinement
   baselines.py       # rule-based baselines
   metrics.py         # accuracy, F1, Brier, ECE, top-k
@@ -76,7 +76,6 @@ Generate train and test datasets:
 .venv/bin/python scripts/generate_dataset.py \
   --topology hypercube --n 6 \
   --fault-rate 0.1 --rounds 3 \
-  --gamma 0.9 --beta 0.1 \
   --num-samples 120 \
   --seed 1101 \
   --output data/q6_train
@@ -84,11 +83,19 @@ Generate train and test datasets:
 .venv/bin/python scripts/generate_dataset.py \
   --topology hypercube --n 6 \
   --fault-rate 0.1 --rounds 3 \
-  --gamma 0.9 --beta 0.1 \
   --num-samples 60 \
   --seed 2101 \
   --output data/q6_test
 ```
+
+By default, each generated sample uses parameter-randomized PMC reliability:
+
+```text
+gamma ~ U(0.8, 1.0)
+beta  ~ U(0.0, 0.2)
+```
+
+Use `--gamma` and `--beta` only when a fixed-parameter dataset is needed.
 
 Run the proposed method:
 

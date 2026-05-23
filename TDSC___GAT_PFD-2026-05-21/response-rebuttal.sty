@@ -1,0 +1,85 @@
+\newcommand{\libcirc}[1]{\pgfmathparse{
+    ifthenelse(#1 > 0 && #1 < 21, Hex(9311+#1), Hex(9450)
+    }\libertineGlyph{uni\pgfmathresult}}
+\definecolor{todocolor}{rgb}{0.9,0.1,0.1}
+
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\newcommand{\agc}[1]{{\color{darkgreen}\tcp*[h] {#1}}}
+
+\newcommand{\nbc}[3]{
+        {\colorbox{#3}{\bfseries\sffamily\scriptsize\textcolor{white}{#1}}}
+        {\textcolor{#3}{\sf\small$\blacktriangleright$\textit{#2}$\blacktriangleleft$}}
+}
+\newcommand{\lab}{\ell\xspace}
+\newcommand{\vfedge}[1]{\xrightarrow{#1}}
+\newcommand{\vfcalledge}[2]{\xrightarrow[#2]{#1}}
+\newcommand{\svf}{\textsc{SVF}\xspace}
+\newcommand{\svfptr}{\textsc{CSA-CP}\xspace}
+\newcommand{\infer}{\textsc{Infer}\xspace}
+\newcommand{\cppcheck}{\textsc{Cppcheck}\xspace}
+\newcommand{\saber}{\textsc{Saber}\xspace}
+\newcommand{\todo}[1]{\nbc{TODO}{#1}{todocolor}}
+\newcommand{\revise}[1]{\textcolor{blue}{#1}}
+\newcommand{\fixme}[1]{\textcolor{red}{#1}}
+\newcommand{\thistool}{\textsc{CSA}\xspace}
+\newcommand{\phasar}{\textsc{Phasar}\xspace}
+\newcommand{\fusion}{\textsc{Fusion}\xspace}
+\newcommand{\pinpoint}{\textsc{Pinpoint}\xspace}
+\newcommand{\astree}{\textsc{ASTRÉE}\xspace}
+\newcommand{\ikos}{\textsc{IKOS}\xspace}
+\newcommand{\sparrow}{\textsc{Sparrow}\xspace}
+\newcommand{\klee}{\textsc{KLEE}\xspace}
+
+\newcommand{\powtr}[2]{\delta_{#1}(#2)\xspace}
+\newcommand{\powtrset}[1]{\delta_{#1}\xspace}
+\newcommand{\powcup}
+{{\ooalign{$\bigcup$\cr\hidewidth$\bullet$\hidewidth\cr}}\xspace}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+\newcommand*{\longhookleftarrow}{\ensuremath{\leftarrow\joinrel\relbar\joinrel\rhook}}
+\newcommand*{\longhookrightarrow}{\ensuremath{\lhook\joinrel\relbar\joinrel\relbar\joinrel\relbar\joinrel\rightarrow}}
+
+\newcommand\runinhead{\@startsection{paragraph}{4}{\z@}%
+                       {-6\p@}% \p@lus -4\p@ \@minus -4\p@}%
+                       {-6\p@}%
+                       {\normalfont\normalsize\bfseries\boldmath\itshape
+                        \rightskip=\z@ \@plus 8em\pretolerance=10000 }}
+
+
+\newcommand{\ruledef}[3]{
+  \begin{tabular}{ll}
+    \rulename{#1}\!$\frac{
+      \begin{array}[c]{c}
+        #2
+      \end{array}
+    }{
+      \begin{array}[c]{c}
+        #3
+      \end{array}
+    }$
+  \end{tabular}
+}
+
+\newcommand{\rulename}[1]{
+  [#1]
+}
+
+\newcommand{\greybox}[1]{\colorbox{lightgray}{\textcolor{black}{$#1$}}}
+
+\newcommand{\nistnum}{7774\xspace} % nist program total num
+\newcommand{\nistfpr}{36.71\%\xspace} % average less fp on nist
+\newcommand{\nistmaxfpr}{51.42\%\xspace} % max less fp on nist
+\newcommand{\nisttpr}{26.65\%\xspace} % average more tp on nist
+\newcommand{\nistmaxtpr}{70.71\%\xspace} % average max tp on nist
+\newcommand{\realnum}{281\xspace} % number of real bugs
+\newcommand{\realtp}{167\xspace} % number of \thistool finding real bugs
+\newcommand{\realfpr}{32.39\%\xspace} % fp of \thistool in real projects
+\newcommand{\realp}{67.61\%\xspace} % fp of \thistool in real projects
+\newcommand{\realbasep}{14.98\%\xspace} % fp of \thistool in real projects
+\newcommand{\realbasemiss}{75\%\xspace} % fn of baselines in real projects
+\newcommand{\realbasetpr}{24.73\%\xspace} % fn of baselines in real projects
+\newcommand{\realbasefpr}{62.93\%\xspace} % more fp of baselines in real projects
+\newcommand{\equitime}{2.47$\times$\xspace} % speedup of equivalent correlation tracking
+\newcommand{\equimem}{6.14$\times$\xspace} % memory reduction of equivalent correlation tracking

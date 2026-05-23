@@ -1,0 +1,154 @@
+\documentclass[lettersize,journal]{IEEEtran}
+\usepackage{amsmath,amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{array}
+\usepackage[font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{textcomp}
+\usepackage{tcolorbox}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{makecell}  
+\usepackage{hhline} 
+\usepackage{tabularray}
+\usepackage{subcaption}
+\hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
+% updated with editorial comments 8/9/2021
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+% \newtheorem{thm}{Theorem}[section]
+% \newtheorem{lem}[thm]{Lemma}
+% \newtheorem{Def}[thm]{Definition}
+% \newtheorem{cor}[thm]{Corollary}
+% \newtheorem{prop}[thm]{Proposition}
+% \newtheorem{con}[thm]{Conjecture}
+% \newtheorem{exa}[thm]{Example}
+% \newtheorem{rem}[thm]{Remark}
+% \newtheorem{sta}[thm]{Statement}
+% \newtheorem{cla}{Claim}
+% \newtheorem{prob}[thm]{Problem}
+% \newtheorem{que}[thm]{Question}
+%\newtheorem{definition}{Definition}
+
+
+\newtheoremstyle{boldstyle} % 样式名称
+  {12pt}                   % 上方空白（例如 12pt）
+  {12pt}                   % 下方空白（例如 12pt）
+  {\itshape}               % 正文字体
+  {}                       % 缩进
+  {\bfseries}              % 标题字体（加粗）
+  {.}                      % 标点符号
+  { }                      % 标题后空白
+  {}                       % 自定义标签
+
+\theoremstyle{boldstyle}   % 应用样式
+
+% 定义所有定理环境
+\newtheorem{thm}{Theorem}%[section]
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{Def}[thm]{Definition}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{con}[thm]{Conjecture}
+\newtheorem{exa}[thm]{Example}
+\newtheorem{rem}[thm]{Remark}
+\newtheorem{sta}[thm]{Statement}
+\newtheorem{cla}{Claim}
+\newtheorem{prob}[thm]{Problem}
+\newtheorem{que}[thm]{Question}
+
+% 自定义证明环境
+\newenvironment{pf}[1][Proof]{\noindent\textbf{#1.} }{\hfill\rule{1mm}{2mm}}
+\def\theequation{\thesection.\arabic{equation}}
+\makeatletter \@addtoreset{equation}{section} \makeatother
+
+\newcommand{\ksx}[1]{\textcolor{purple}{\leavevmode ksx: #1}}
+\newcommand{\sxl}[1]{\textcolor{blue}{\leavevmode sxl: #1}}
+
+\newcommand*{\tool}{{\textsc{UP-GDN}}\xspace}
+
+
+\newcommand{\code}[1]{{\fontfamily{cmtt}\fontseries{m}\fontshape{n}\selectfont\small{#1}}}
+
+\newcommand{\revise}[1]{\textcolor{blue}{#1}}
+
+
+% Define a custom macro for the highlighted box
+\newtcolorbox{answerBox}[1][]{colback=gray!10,    % Background color
+   colframe=gray!10,   % Border color
+   boxrule=0.2mm,      % Border thickness
+   arc=0.5mm,            % Rounded corners
+   width=\columnwidth,   % Box width
+   left=0.2mm,           % Left padding
+   right=0.2mm,          % Right padding
+   top=0.2mm,            % Top padding
+   bottom=0.2mm,         % Bottom padding
+   #1}
+
+\begin{document}
+
+\title{Uncertainty-Aware Probabilistic Graph Diagnosis for Interconnection Networks}
+\author{
+Xueli~Sun, Shuangxiang~Kan$^{*}$, Jianxi~Fan, Weibei~Fan, Jin~Qi, Zhenjiang~Dong
+\noindent\thanks{This work is supported by the National Natural Science Foundation of China (Nos.62402241, 62372248, 62272244), the Natural Science Foundation of the Jiangsu Higher Education Institutions of China (No.24KJD520006), Natural Science Research Start-up Foundation of Recruiting Talents of Nanjing University of Posts and Telecommunications (No.NY223189), Natural Science Foundation of Jiangsu Province (No.BK20200753), Key Program of Natural Science Foundation of Jiangsu under (24KJA520006), and the Natural Science Foundation for Excellent Young Scholars of Jiangsu Province under Grant (BK20250143).
+}
+\thanks{X. Sun and J. Qi are with the College of Internet of Things, Nanjing University of Posts and Telecommunications, Nanjing 210003, China, S. Kan$^{*}$ (corresponding author) is with the University of New South Wales, Sydney, Australia (e-mail: shuangxiangkan@outlook.com), J. Fan is with the College of Computer, Soochow University, Suzhou 215006, China, W. Fan and Z. Dong are with the College of Computer, Nanjing University of Posts and Telecommunications, Nanjing 210003, China. }
+\thanks{E-mail: sunxueli@njupt.edu.cn.}
+}
+% <-this % stops a space}
+% \author{
+% \IEEEauthorblockA{Xueli Sun}\\
+% \textit{Nanjing University of Posts and Telecommunications}\\
+% Nanjing, China\\
+% \IEEEauthorblockA{Shuangxiang Kan}\\
+% \textit{University of New South Wales}\\
+% Sydney, Australia\\
+% shuangxiang.kan@unsw.edu.au
+% }
+
+
+% % The paper headers
+% \markboth{Journal of \LaTeX\ Class Files,~Vol.~14, No.~8, August~2021}%
+% {Shell \MakeLowercase{\textit{et al.}}: A Sample Article Using IEEEtran.cls for IEEE Journals}
+
+% \IEEEpubid{0000--0000/00\$00.00~\copyright~2021 IEEE}
+% Remember, if you use this you must call \IEEEpubidadjcol in the second
+% column for its text to clear the IEEEpubid mark.
+
+\maketitle
+
+\begin{abstract}
+The reliability of large-scale interconnection networks is critical for high-performance computing and cloud infrastructures. System-level diagnosis identifies faulty processors from mutual testing outcomes, but probabilistic diagnosis remains challenging because the observed syndromes are noisy, diagnostic reliability parameters may be unknown or time-varying, and a hard fault/non-fault decision provides little information about diagnostic confidence. This paper presents \tool, an uncertainty-aware probabilistic graph diagnosis framework for the probabilistic PMC model. Instead of treating diagnosis as ordinary node classification, \tool estimates calibrated node-wise fault posterior probabilities, quantifies predictive uncertainty, and ranks suspicious processors for risk-aware maintenance. The framework jointly exploits coarse-grained statistical summaries and fine-grained multi-round syndrome observations through reliability-aware graph message passing. To improve robustness, \tool is trained over a distribution of probabilistic PMC parameters and can adapt to unseen diagnostic reliability conditions.
+Experiments on representative interconnection networks show that \tool maintains high diagnostic performance under different fault rates, network scales, and parameter shifts. Beyond accuracy, \tool achieves better calibration and top-$k$ fault localization than classification-oriented graph neural baselines, demonstrating its effectiveness for dependable probabilistic fault diagnosis.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Fault tolerance, interconnection networks, probabilistic fault diagnosis, graph neural networks, uncertainty estimation
+\end{IEEEkeywords}
+
+\input{1-introduction}
+\input{2-background}
+\input{3-method}
+\input{4-evaluation}
+\input{5-limitation}
+\input{6-related}
+\input{7-conclusion}
+
+\bibliographystyle{IEEEtran}
+
+\bibliography{reference}
+
+\input{8-biography}
+
+\end{document}
